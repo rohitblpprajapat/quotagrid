@@ -264,3 +264,28 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   before going on stage and deactivate any listing that isn't USABLE. #2 (invalid Anthropic key) should be deactivated
   now. The agent's own primary Gemini key was still 429 at 16:33; if it stays exhausted, the agent switches on the 429
   path at step 1 (reason `quota_error`) rather than on the budget threshold.
+
+## D-030 — Pricing standardization across models (research 16:38, see docs/research/pricing.md)
+- **Problem (verified live):** every provider bills output tokens 4–8.3× input (Anthropic exactly 5× on all 21 models;
+  Gemini 4–8.3×; Groq 4–5×), and thinking tokens are billed as output on Gemini and Anthropic. QuotaGrid's listing has one
+  `pricePerKToken` applied to input + output + thinking alike.
+- **What is NOT broken:** the escrow invariant. Both providers count thinking inside the output cap we send, and
+  `settle()` reverts if tUsed > tMax, so the buyer can never pay more than the escrow and the refund is always
+  deposit − cost(tUsed). Newer models (Claude 5.5, Gemini 3.x) cannot turn thinking off; they still fit because the cap
+  includes thinking — the only effect is that more of the escrow is used.
+- **Decision for today (code freeze 17:30, demo path locked D-028):** no change to settlement math. The Sell form now tells
+  sellers to price at or above their provider OUTPUT rate (so they can never lose money; buyers overpay only on input
+  tokens, which are the cheap ones), and suggests current model ids (claude-haiku-5-5 / sonnet-5-5 / opus-5-5,
+  gemini-3.8-flash). Any change to how tUsed is computed would change the numbers in the rehearsed demo receipt.
+- **Alternatives for after the event, in order of preference:**
+  1. **Weighted billing units, no contract change (v1.1):** 1 billing token = 1 input token; 1 output or thinking token
+     = W input tokens, protocol-wide W = 5 (Anthropic exact ratio, inside Gemini 4–8× and Groq 4–5×). Operator computes
+     tMax = inputExact + W·maxOutput and tUsed = input + W·(output + thinking); the contract just sees integers. Sellers
+     price per 1k input-equivalent tokens, which maps 1:1 to how providers quote. Touches quote/execute routes, SDK and
+     receipt labels (~1 hour), zero on-chain change.
+  2. **Contract v2 (two prices):** `pricePerKInput` + `pricePerKOutput` per listing, `settle(requestId, tIn, tOut)`,
+     tMax = cost(inExact, maxOut). Exact for every provider, but needs redeploy + Sourcify + ABI change everywhere.
+  3. **Per-model weight table on the server** (operator publishes W per provider/model, e.g. 8 for gemini-2.5-flash):
+     most accurate, but moves pricing truth off-chain; rejected as default because buyers could not verify it.
+- **Also noted:** gemini-2.5-flash is deprecated and auto-routes to gemini-3.5-flash-lite from 2026-12-01 (billed at
+  that model rate). Listings for it keep working but sellers should relist on a current model before then.

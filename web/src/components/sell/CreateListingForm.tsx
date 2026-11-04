@@ -21,8 +21,8 @@ const PROVIDER_OPTIONS: { value: Provider; label: string }[] = [
 ];
 
 const MODEL_SUGGESTIONS: Record<Provider, string[]> = {
-  gemini: ['gemini-2.5-flash', 'gemini-2.5-flash-lite'],
-  anthropic: ['claude-haiku-4-5'],
+  gemini: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.8-flash'],
+  anthropic: ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-4-5'],
   'openai-compatible': ['llama-3.3-70b-versatile'],
 };
 
@@ -311,7 +311,7 @@ export function CreateListingForm({ onListingCreated }: CreateListingFormProps) 
             {/* Price per 1k tokens */}
             <Field
               label="Price per 1k Tokens (MON)"
-              hint="Unit price in MON charged for every 1,000 tokens consumed"
+              hint="One flat rate for input, output and thinking tokens. Providers bill output 4–8× input, so set this at or above your provider's OUTPUT rate."
             >
               <Input
                 type="text"

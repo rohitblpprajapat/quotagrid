@@ -1,5 +1,8 @@
 # QuotaGrid
 
+**Demo video (42 s):** [`docs/video/quotagrid-demo.mp4`](docs/video/quotagrid-demo.mp4), rendered from [`docs/video/quotagrid-demo.html`](docs/video/quotagrid-demo.html). Settlement numbers in it come from the live testnet request #1 on contract v2.
+
+
 **Decentralized AI API quota marketplace on Monad with exact token-level escrow and settlement.**
 
 `Monad Testnet (Chain ID 10143)` · `Contract Verified on Sourcify` · `Live App: https://quotagrid.vercel.app`

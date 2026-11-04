@@ -1,0 +1,248 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>QuotaGrid demo video</title>
+<style>
+  :root{--bg:#0b0a10;--panel:#15131d;--line:#2a2638;--ink:#f4f2fa;--mute:#a39fb5;--accent:#8b5cf6;--accent2:#22d3ee;--ok:#34d399;--bad:#f43f5e;--warn:#f59e0b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink)}
+  #stage{position:absolute;inset:0;overflow:hidden}
+  .layer{position:absolute;inset:0;opacity:0}
+  .cap{position:absolute;left:0;right:0;text-align:center;font-weight:700;letter-spacing:-.5px}
+  .mono{font-family:Consolas,"Cascadia Mono",monospace}
+  .glass{background:rgba(21,19,29,.88);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:700;letter-spacing:1px}
+  .bar{position:absolute;height:22px;border-radius:11px;background:#1d1a28;border:1px solid var(--line);overflow:hidden}
+  .bar>i{position:absolute;left:0;top:0;bottom:0;border-radius:11px}
+  .node{position:absolute;width:210px;padding:16px;text-align:center;border-radius:16px;background:#15131d;border:2px solid var(--line);font-size:17px;font-weight:600}
+  .node small{display:block;font-weight:400;color:var(--mute);font-size:13px;margin-top:6px}
+  .arrow{position:absolute;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform-origin:left center}
+</style></head>
+<body><div id="stage">
+
+<!-- Office background shared by scenes 1,2,5 -->
+<div class="layer" id="office">
+  <svg width="1280" height="720" viewBox="0 0 1280 720">
+    <defs>
+      <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14121c"/><stop offset="1" stop-color="#0b0a10"/></linearGradient>
+    </defs>
+    <rect width="1280" height="720" fill="url(#wall)"/>
+    <!-- window with night city -->
+    <rect x="80" y="60" width="1120" height="230" rx="8" fill="#0e1424" stroke="#232036"/>
+    <g fill="#1b2340">
+      <rect x="110" y="170" width="70" height="120"/><rect x="200" y="130" width="90" height="160"/><rect x="310" y="190" width="60" height="100"/>
+      <rect x="420" y="110" width="110" height="180"/><rect x="560" y="160" width="80" height="130"/><rect x="680" y="120" width="100" height="170"/>
+      <rect x="820" y="180" width="70" height="110"/><rect x="920" y="140" width="120" height="150"/><rect x="1070" y="175" width="100" height="115"/>
+    </g>
+    <g fill="#f6d77a" opacity=".55" id="cityLights"></g>
+    <text x="1160" y="100" text-anchor="end" font-size="26" font-family="Consolas,monospace" fill="#a39fb5" id="clock">21:47</text>
+    <!-- floor -->
+    <rect y="560" width="1280" height="160" fill="#100e17"/>
+    <line x1="0" y1="560" x2="1280" y2="560" stroke="#232036" stroke-width="2"/>
+    <g id="desks"></g>
+  </svg>
+</div>
+
+<!-- Scene captions -->
+<div class="layer" id="cap1"><div class="cap" style="top:22px;font-size:46px">9:47 PM. Launch is tomorrow.</div>
+  <div class="cap" style="top:600px;font-size:26px;color:var(--mute);font-weight:500">The whole team is shipping with AI.</div></div>
+<div class="layer" id="cap2"><div class="cap" style="top:28px;font-size:40px"><span style="color:var(--bad)">AI usage limit reached.</span> Mid-task.</div></div>
+<div class="layer" id="cap2b"><div class="cap" style="top:28px;font-size:40px">Work stops. People leave their desks.</div></div>
+
+<!-- Scene 3: the paradox -->
+<div class="layer" id="s3">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#1c1630,#0b0a10 70%)"></div>
+  <div class="cap" style="top:150px;font-size:46px">Meanwhile, somewhere else...</div>
+  <div class="glass" id="s3card" style="position:absolute;left:340px;top:250px;width:600px;padding:28px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:22px;font-weight:700">Monthly AI credits</span><span class="tag" style="background:#3b1d24;color:var(--bad)">EXPIRES IN 2 DAYS</span></div>
+    <div class="bar" style="left:28px;right:28px;top:84px;position:absolute"><i id="s3fill" style="background:linear-gradient(90deg,#6d28d9,#8b5cf6);width:20%"></i></div>
+    <div style="margin-top:62px;color:var(--mute);font-size:18px" id="s3txt">Used 20%. <b style="color:var(--ink)">80% of the quota goes to waste.</b></div>
+  </div>
+  <div class="cap" style="top:470px;font-size:30px;color:var(--accent2)" id="s3q">What if agents could just buy it, per call?</div>
+</div>
+
+<!-- Scene 4: logo flash -->
+<div class="layer" id="s4">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#2a1a55,#0b0a10 65%)"></div>
+  <div class="cap" style="top:270px;font-size:96px;letter-spacing:-3px"><span style="background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;color:transparent">QuotaGrid</span></div>
+  <div class="cap" style="top:400px;font-size:26px;color:var(--mute);font-weight:500">A marketplace for unused AI quota. Settled on Monad.</div>
+</div>
+
+<!-- Scene 5: agent terminal with budget threshold -->
+<div class="layer" id="s5">
+  <div style="position:absolute;inset:0;background:linear-gradient(160deg,#120f1d,#0b0a10)"></div>
+  <div class="cap" style="top:30px;font-size:34px">A token-aware agent, on its own budget</div>
+  <div class="glass mono" style="position:absolute;left:60px;top:100px;width:700px;height:560px;padding:22px;font-size:17px;line-height:1.6" id="term"></div>
+  <div class="glass" style="position:absolute;left:800px;top:100px;width:420px;height:560px;padding:26px">
+    <div style="font-size:15px;color:var(--mute);letter-spacing:2px;font-weight:700">OWN-KEY TOKEN BUDGET</div>
+    <div class="mono" style="font-size:64px;font-weight:700;margin-top:10px" id="budgetNum">120</div>
+    <div class="bar" style="left:26px;right:26px;top:150px"><i id="budgetFill" style="background:var(--ok);width:100%"></i></div>
+    <div style="position:absolute;top:140px;width:2px;height:42px;background:var(--warn)" id="thr"></div>
+    <div style="position:absolute;top:186px;font-size:13px;color:var(--warn)" id="thrLbl">threshold 50</div>
+    <div style="position:absolute;left:26px;right:26px;top:250px">
+      <div style="font-size:15px;color:var(--mute);letter-spacing:2px;font-weight:700">ROUTE</div>
+      <div class="mono" style="font-size:40px;font-weight:700;margin-top:8px" id="route">PRIMARY</div>
+      <div style="margin-top:28px;font-size:16px;color:var(--mute);line-height:1.6" id="routeTxt">Answering on the agent's own Gemini key.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 6: settlement flow -->
+<div class="layer" id="s6">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#18122b,#0b0a10 70%)"></div>
+  <div class="cap" style="top:34px;font-size:34px">One call. One escrow. One settlement. On Monad.</div>
+  <div class="node" id="n1" style="left:40px;top:200px">Agent wallet<small>escrows worst case</small></div>
+  <div class="node" id="n2" style="left:355px;top:200px;border-color:#6d28d9">Monad escrow<small>T_max = 146 tokens</small></div>
+  <div class="node" id="n3" style="left:670px;top:200px">Seller's Gemini key<small>encrypted, never revealed</small></div>
+  <div class="node" id="n4" style="left:985px;top:200px;border-color:var(--ok)">Settle + refund<small>same transaction</small></div>
+  <div class="arrow" id="a1" style="left:250px;top:248px;width:105px"></div>
+  <div class="arrow" id="a2" style="left:565px;top:248px;width:105px"></div>
+  <div class="arrow" id="a3" style="left:880px;top:248px;width:105px"></div>
+  <div class="glass" id="rcpt" style="position:absolute;left:240px;top:360px;width:800px;padding:26px 32px">
+    <div style="display:flex;justify-content:space-between;font-size:15px;color:var(--mute);letter-spacing:2px;font-weight:700"><span>LIVE TESTNET SETTLEMENT &middot; REQUEST #1</span><span id="lat" class="mono" style="color:var(--accent2)">0.0 s</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px" class="mono">
+      <div><div style="color:var(--mute);font-size:13px">RESERVED</div><div style="font-size:30px;font-weight:700">146</div></div>
+      <div><div style="color:var(--mute);font-size:13px">USED</div><div style="font-size:30px;font-weight:700;color:#a78bfa" id="used">0</div></div>
+      <div><div style="color:var(--mute);font-size:13px">SELLER PAID</div><div style="font-size:22px;font-weight:700;margin-top:6px">0.0000585</div></div>
+      <div><div style="color:var(--mute);font-size:13px">REFUNDED</div><div style="font-size:22px;font-weight:700;margin-top:6px;color:var(--ok)" id="ref">-</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:15px;color:var(--mute)">Pay only for tokens used. 2.5% protocol fee. Settlement gas paid by the protocol treasury.</div>
+  </div>
+</div>
+
+<!-- Scene 7 caption over office (back to work) -->
+<div class="layer" id="cap7"><div class="cap" style="top:28px;font-size:40px"><span style="color:var(--ok)">Back to work.</span> The agent never stopped.</div></div>
+
+<!-- Scene 8: end card -->
+<div class="layer" id="s8">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#2a1a55,#0b0a10 65%)"></div>
+  <div class="cap" style="top:200px;font-size:92px;letter-spacing:-3px"><span style="background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;color:transparent">QuotaGrid</span></div>
+  <div class="cap" style="top:330px;font-size:28px;font-weight:500">Sell unused AI quota. Agents buy it per call.</div>
+  <div class="cap mono" style="top:410px;font-size:30px;color:var(--accent2)">quotagrid.vercel.app</div>
+  <div class="cap" style="top:500px;font-size:20px;color:var(--mute);font-weight:500">Built on Monad &middot; Monad Blitz Mumbai</div>
+</div>
+
+</div>
+<script>
+// Deterministic timeline: render(t) draws the frame for time t (seconds). seek() is used for frame capture.
+const $ = id => document.getElementById(id);
+const clamp = (x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease = x => { x=clamp(x); return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2; };
+const ramp = (t,a,b)=>ease((t-a)/(b-a));
+const win = (t,a,b,f=.5)=>Math.min(ramp(t,a,a+f), 1-ramp(t,b-f,b)); // fade in at a, out at b
+const DURATION = 42;
+
+// City lights
+const cl=$('cityLights'); let seed=7; const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+for(let i=0;i<70;i++){const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',110+rnd()*1060);r.setAttribute('y',130+rnd()*150);r.setAttribute('width',6);r.setAttribute('height',8);cl.appendChild(r);}
+
+// Desks + people
+const NS='http://www.w3.org/2000/svg', desks=$('desks');
+const people=[];
+const colors=['#8b5cf6','#22d3ee','#f472b6'];
+[220,640,1060].forEach((x,i)=>{ const m=x-55;
+  const g=document.createElementNS(NS,'g'); g.innerHTML=`
+    <rect x="${x-150}" y="470" width="300" height="16" rx="4" fill="#2a2638"/>
+    <rect x="${x-140}" y="486" width="10" height="74" fill="#221f30"/><rect x="${x+130}" y="486" width="10" height="74" fill="#221f30"/>
+    <rect x="${m-95}" y="340" width="190" height="120" rx="8" fill="#0f0d16" stroke="#3a3550" stroke-width="3"/>
+    <rect class="scr" x="${m-87}" y="348" width="174" height="104" rx="4" fill="#1e1a2e"/>
+    <g class="scrTxt" font-family="Consolas,monospace" font-size="12"></g>
+    <rect x="${m-10}" y="460" width="20" height="12" fill="#3a3550"/>`;
+  desks.appendChild(g);
+  const p=document.createElementNS(NS,'g'); p.innerHTML=`
+    <rect x="-34" y="0" width="68" height="34" rx="8" fill="#26222f"/>
+    <g class="body"><rect x="-30" y="-78" width="60" height="84" rx="26" fill="${colors[i]}"/>
+    <circle class="head" cx="0" cy="-104" r="24" fill="#e8c6a8"/>
+    <rect class="armL" x="-44" y="-62" width="14" height="50" rx="7" fill="${colors[i]}"/>
+    <rect class="armR" x="30" y="-62" width="14" height="50" rx="7" fill="${colors[i]}"/></g>
+    <text class="bang" x="34" y="-136" font-size="34" font-weight="900" fill="#f43f5e" opacity="0">!</text>`;
+  desks.appendChild(p);
+  people.push({x,g,p});
+});
+
+const terminalLines = [
+  [0.4, '<span style="color:#a39fb5">$ quotagrid demo-agent --budget 120 --threshold 50</span>'],
+  [1.4, 'step 1  <span style="color:#34d399">PRIMARY</span>  "Capital of France?"  -21 tok'],
+  [2.6, 'step 2  <span style="color:#34d399">PRIMARY</span>  "What is the EVM?"    -17 tok'],
+  [3.8, 'step 3  <span style="color:#34d399">PRIMARY</span>  "What is escrow?"     -34 tok'],
+  [5.0, '<span style="color:#f59e0b;font-weight:700">SWITCH TRIGGERED  reason: budget_threshold (48 &lt; 50)</span>'],
+  [6.0, 'step 4  <span style="color:#22d3ee">QUOTAGRID</span> quote: T_max 146 tokens'],
+  [6.8, '        escrow opened on Monad ......... <span style="color:#34d399">ok</span>'],
+  [7.6, '        seller model answered ........... <span style="color:#34d399">ok</span>'],
+  [8.4, '        settled: used 60, refund 86 tok <span style="color:#34d399">4.2 s</span>'],
+];
+const budgetSteps=[[1.4,99],[2.6,82],[3.8,48]];
+
+function screen(i, mode){ // mode: work | err | ok
+  const d=desks.children[i*2], scr=d.querySelector('.scr'), txt=d.querySelector('.scrTxt'), x=people[i].x-55;
+  if(mode==='err'){scr.setAttribute('fill','#3b0f1a');txt.innerHTML=`<text x="${x}" y="392" text-anchor="middle" fill="#fda4af" font-weight="700">AI usage limit</text><text x="${x}" y="410" text-anchor="middle" fill="#fda4af" font-weight="700">reached</text><text x="${x}" y="432" text-anchor="middle" fill="#a39fb5">try again in 5h</text>`;}
+  else if(mode==='ok'){scr.setAttribute('fill','#0d2a22');txt.innerHTML=`<text x="${x}" y="392" text-anchor="middle" fill="#6ee7b7" font-weight="700">answer received</text><text x="${x}" y="414" text-anchor="middle" fill="#a39fb5">via QuotaGrid</text>`;}
+  else {scr.setAttribute('fill','#1e1a2e');txt.innerHTML=[0,1,2,3,4].map(k=>`<rect x="${x-75}" y="${360+k*17}" width="${60+((k*37+i*23)%90)}" height="7" rx="3" fill="${k%2?'#4c3d7a':'#2f6f7f'}"/>`).join('');}
+}
+
+function render(t){
+  // ---- layer visibility ----
+  const officeOn = Math.max(win(t,0,12.2), win(t,33.5,38.2));
+  $('office').style.opacity = officeOn;
+  $('cap1').style.opacity = win(t,0.4,4.2);
+  $('cap2').style.opacity = win(t,4.4,8.2);
+  $('cap2b').style.opacity = win(t,8.4,12.0);
+  $('s3').style.opacity = win(t,12.2,17.2);
+  $('s4').style.opacity = win(t,17.2,20.4);
+  $('s5').style.opacity = win(t,20.4,30.0);
+  $('s6').style.opacity = win(t,30.0,33.7);
+  $('cap7').style.opacity = win(t,34.0,38.0);
+  $('s8').style.opacity = win(t,38.0,DURATION+1, .6);
+
+  // ---- office: clock + people ----
+  const back = t>33;
+  $('clock').textContent = back ? '22:04' : (t<4.4?'21:47':'21:52');
+  people.forEach((P,i)=>{
+    let px=P.x+100, py=560, tilt=0, armUp=0, bang=0, leave=0;
+    if(!back){
+      if(t<4.4){ armUp = Math.sin(t*14+i)*4; screen(i,'work'); }
+      else { screen(i,'err');
+        const hit=ramp(t,4.6+i*.35,5.2+i*.35);
+        if(i===0){ tilt=-14*hit; armUp=-26*hit; bang=hit*(t<8.4?1:0); }
+        if(i===1){ bang=hit*(t<7.6?1:0); leave=ramp(t,7.6,11.6); }
+        if(i===2){ armUp=-34*Math.abs(Math.sin((t-4.6)*6))*hit*(t<7?1:0); bang=hit*(t<8?1:0); leave=ramp(t,8.6,12); }
+      }
+    } else { screen(i,'ok'); armUp=Math.sin(t*14+i)*4; }
+    px += leave*(i===1?-900:700);
+    P.p.setAttribute('transform',`translate(${px},${py-34})`);
+    P.p.querySelector('.body').setAttribute('transform',`rotate(${tilt} 0 -30)`);
+    P.p.querySelector('.armL').setAttribute('transform',`translate(0 ${armUp})`);
+    P.p.querySelector('.armR').setAttribute('transform',`translate(0 ${-armUp})`);
+    P.p.querySelector('.bang').setAttribute('opacity',bang);
+  });
+
+  // ---- scene 3: wasted quota ----
+  $('s3card').style.transform=`translateY(${(1-ramp(t,12.4,13.2))*30}px)`;
+  $('s3q').style.opacity=ramp(t,14.6,15.2);
+
+  // ---- scene 5: terminal + budget ----
+  const t5=t-20.6;
+  $('term').innerHTML = terminalLines.filter(l=>t5>=l[0]).map(l=>`<div>${l[1]}</div>`).join('') + (Math.floor(t*2)%2?'<span style="background:#a39fb5">&nbsp;</span>':'');
+  let b=120; budgetSteps.forEach(([s,v])=>{ if(t5>=s) b=v; });
+  $('budgetNum').textContent=b;
+  const fill=$('budgetFill'); fill.style.width=(b/120*100)+'%'; fill.style.background = b<50?'#f59e0b':'#34d399';
+  const barW=420-52; $('thr').style.left=(26+barW*50/120)+'px'; $('thrLbl').style.left=(14+barW*50/120)+'px';
+  const sw=t5>=5.0;
+  $('route').textContent = sw?'QUOTAGRID':'PRIMARY'; $('route').style.color = sw?'#22d3ee':'#34d399';
+  $('routeTxt').innerHTML = sw ? 'Budget below threshold. The agent buys this call on QuotaGrid from its own Monad wallet. No human, no credit card.' : "Answering on the agent's own Gemini key.";
+
+  // ---- scene 6: flow ----
+  const t6=t-30.0;
+  ['a1','a2','a3'].forEach((id,k)=>{$(id).style.transform=`scaleX(${ramp(t6,.3+k*.6,.8+k*.6)})`;});
+  ['n1','n2','n3','n4'].forEach((id,k)=>{const on=ramp(t6,k*.6,k*.6+.4);$(id).style.opacity=.35+.65*on;$(id).style.transform=`translateY(${(1-on)*12}px)`;});
+  const s=ramp(t6,1.8,2.6);
+  $('used').textContent = Math.round(60*s);
+  $('ref').textContent = s>=1 ? '0.000086 MON' : '-';
+  $('lat').textContent = (4.2*clamp(t6/2.6)).toFixed(1)+' s';
+  $('rcpt').style.opacity=ramp(t6,.2,.8);
+}
+
+window.seek = t => render(t);
+window.DURATION = DURATION;
+if(!location.hash.includes('capture')){ const t0=performance.now(); (function loop(){ render(((performance.now()-t0)/1000)%DURATION); requestAnimationFrame(loop); })(); }
+else render(0);
+</script>
+</body></html>

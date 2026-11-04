@@ -19,7 +19,8 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | 14:20 | sdk-fix1 verified (18/18, live read OK), pushed 56482f5. web2 failed on slow WSL npm install → UI split into 4 parallel Windows agy runs (D-021). |
 | 14:50 | UI runs finished (timeouts, pages written). tsc: 83 errors from 6 missing shared components + ES2017 target → target fixed; `ui-core-fix1` writing components (D-023). |
 | 15:06 | UI type-checks + builds. Deployed https://quotagrid.vercel.app; pages + operator-key API verified live (D-024). README being written (agy `readme`). |
-| 15:15 | README written + fact-fixed, pushed 783ee7f, redeployed. Next: live end-to-end test (needs a seller listing with a real API key). |
+| 15:08 | README written + fact-fixed, pushed 783ee7f, redeployed. Next: live end-to-end test (needs a seller listing with a real API key). |
+| 15:19 | Live test: user's listing never reached our contract (listingCount 0) → wrong-network write bug fixed + SDK reserve floor relaxed (D-026). Redeployed, pushed b3717e2. Agent wallet 0xC44F… funded 5 MON. |
 
 ## Rubric checklist
 ### Basic (50)

@@ -18,13 +18,14 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | 13:55 | First commit pushed to github.com/rohitblpprajapat/quotagrid (e4054fc); secret scan clean. sdk resumed as sdk-fix1 with --boost. |
 | 14:20 | sdk-fix1 verified (18/18, live read OK), pushed 56482f5. web2 failed on slow WSL npm install → UI split into 4 parallel Windows agy runs (D-021). |
 | 14:50 | UI runs finished (timeouts, pages written). tsc: 83 errors from 6 missing shared components + ES2017 target → target fixed; `ui-core-fix1` writing components (D-023). |
+| 15:10 | UI type-checks + builds. Deployed https://quotagrid.vercel.app; pages + operator-key API verified live (D-024). README being written (agy `readme`). |
 
 ## Rubric checklist
 ### Basic (50)
 - [x] Forked official starter repo, renamed (10)
 - [ ] Proper README: description, setup, live URL, contract address (10)
 - [x] Contract deployed on Monad testnet (20) — `0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1`
-- [ ] Publicly hosted app (10)
+- [x] Publicly hosted app (10) — https://quotagrid.vercel.app
 ### Advance — Project working (50)
 - [ ] All announced features work (20)
 - [ ] Live on-chain tx during demo (10)
@@ -45,11 +46,11 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | Research: event rules/rubric (live) | agy `research-event` | done → docs/research/event.md |
 | Research: AI provider APIs | agy `research-ai` | done → docs/research/ai-providers.md |
 | Contract `QuotaGrid.sol` + tests | agy `contract2` (Gemini) | done — 17/17 tests pass (rerun by supervisor) |
-| Web UI (market, sell, buy, activity, agents) | `web2` failed (50 min stuck in npm install on /mnt/d) → split into 4 parallel Windows runs `ui-core`, `ui-buy`, `ui-sell`, `ui-pages` (boost); deps installed by supervisor on Windows | running |
+| Web UI (market, sell, buy, activity, agents) | ui-core/buy/sell/pages + ui-core-fix1 | done — tsc 0 errors, build OK |
 | Agent SDK / proxy / MCP / demo agent | agy `sdk` → `sdk-fix1` (boost) | done — 18/18 tests (rerun by supervisor), live `models` read OK |
 | API routes (operator key, quote, execute) | agy `api` → `api-fix1` | done — D-013 multi-turn payload, crypto self-test PASS |
 | Deploy testnet + verify | supervisor | done — deployed + Sourcify verified (D-019) |
-| Host on Vercel | supervisor | logged in (rohitblpprajapat), project `quotagrid` linked (root web/), 6 env vars set for production (secrets hidden); deploy after UI type-checks |
+| Host on Vercel | supervisor | done — https://quotagrid.vercel.app (smoke-tested, D-024) |
 | README | — | pending |
 
 ## Needs from the user

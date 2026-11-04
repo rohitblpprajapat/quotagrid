@@ -177,3 +177,12 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
 - **Decision:** small, well-scoped fixes run without boost and with short timeouts (`ui-core-fix1`); boost stays for large
   multi-file work and gets >= 45-min timeouts.
 - **Why:** Boost adds a subagent hop and verification rounds; with ~2.7 h to code freeze, latency matters more.
+
+## D-024 — Production build fixes and Vercel deploy
+- **Fixes:** removed Next 16 scaffold flags `cacheComponents` / `partialPrefetching` (incompatible with the API routes'
+  `runtime = 'nodejs'` segment config; the app reads live chain state so component caching isn't wanted); pinned
+  `"engines": {"node": ">=22.12"}` because `@tailwindcss/turbopack` needs unflagged `require(esm)` (Node 22.12+; local Node
+  22.11 builds only with `NODE_OPTIONS=--experimental-require-module`); Badge prop mismatch fixed; stale tsbuildinfo removed.
+- **Result:** local `next build` OK (7 pages + 3 API routes, tsc 0 errors). Deployed to **https://quotagrid.vercel.app**
+  (`vercel deploy --prod`). Smoke test: `/`, `/market`, `/sell`, `/activity`, `/agents` → 200; `/api/operator-key` → 200 and
+  serves operator `0xE959…C8aA` (proves server env is loaded); `/api/quote` for a non-existent listing → clear error.

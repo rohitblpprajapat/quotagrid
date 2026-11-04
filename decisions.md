@@ -256,8 +256,11 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   - the agent's primary Gemini key → 429 "exceeded your current quota" (a correct rejection: that key really is
     exhausted).
 - **Re-check of existing listings** (`sdk/scripts/validate-listings.mjs`, uses the on-chain ciphertext):
-  - #1 gemini → 429 quota exhausted (still 429 after waiting, so a daily limit);
+  - #1 gemini → 429 at 16:25 and still 429 about a minute later; USABLE again at 16:33 from production. So it was a
+    temporary rate limit, not a dead key, and the check reflects the key's state at that moment.
   - #2 anthropic → 401 "invalid x-api-key";
   - #3 gemini → usable, in about 1 s.
-- **Demo consequence:** the SDK picks the lowest listing id at equal price, so #1 would be chosen and fail (refunded).
-  #1 and #2 must be deactivated in /sell → My listings, and the human demo uses `/buy/3`.
+- **Demo consequence:** at equal price the SDK picks the lowest listing id (#1). Run `validate-listings.mjs` right
+  before going on stage and deactivate any listing that isn't USABLE. #2 (invalid Anthropic key) should be deactivated
+  now. The agent's own primary Gemini key was still 429 at 16:33; if it stays exhausted, the agent switches on the 429
+  path at step 1 (reason `quota_error`) rather than on the budget threshold.

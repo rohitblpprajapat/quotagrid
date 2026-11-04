@@ -2,7 +2,7 @@
 
 **Decentralized AI API quota marketplace on Monad with exact token-level escrow and settlement.**
 
-`Monad Testnet (Chain ID 10143)` · `Contract Verified on Sourcify` · `Live App: LIVE_URL_TBD`
+`Monad Testnet (Chain ID 10143)` · `Contract Verified on Sourcify` · `Live App: https://quotagrid.vercel.app`
 
 ---
 
@@ -18,7 +18,7 @@ The buyer escrows the worst-case token cost ($T_{\text{max}}$) in native MON on 
 
 | Resource | Value / Link |
 | :--- | :--- |
-| **Live Web App** | `LIVE_URL_TBD` |
+| **Live Web App** | `https://quotagrid.vercel.app` |
 | **Deployed Contract** | [`0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1`](https://testnet.monadvision.com/address/0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1) |
 | **Deployment Transaction** | [`0x14efce9ca1fb0ad9a58ea90517d0878ab4d88c6037d7432915e8d90cfeb898c4`](https://testnet.monadvision.com/tx/0x14efce9ca1fb0ad9a58ea90517d0878ab4d88c6037d7432915e8d90cfeb898c4) |
 | **Contract Verification** | [Sourcify Match Job `beda484b-eade-40f9-8ff7-a9e88a157756`](https://sourcify-api-monad.blockvision.org/verify-ui/jobs/beda484b-eade-40f9-8ff7-a9e88a157756) |
@@ -197,7 +197,7 @@ Follow these numbered steps to run the complete QuotaGrid stack locally.
 
 ### Prerequisites
 
-- **Node.js:** `>= 20.0.0`
+- **Node.js:** `>= 22.12` (required by the web build; Tailwind v4 Turbopack loader)
 - **Foundry:** `>= 1.8.0` (with Monad execution support). Install via:
   ```bash
   curl -L https://foundry.paradigm.xyz | bash
@@ -341,13 +341,13 @@ export MONAD_RPC_URL="https://testnet-rpc.monad.xyz"
 Verify your agent wallet balance and confirm compliance with Monad's 10 MON reserve requirement:
 
 ```bash
-npx quotagrid wallet
+node dist/cli.js wallet
 ```
 
 #### 4. View Active Live Listings on Monad
 
 ```bash
-npx quotagrid models
+node dist/cli.js models
 ```
 
 #### 5. Run Local Drop-In Proxy (OpenAI & Gemini Compatible)
@@ -355,7 +355,7 @@ npx quotagrid models
 Start the proxy server on port `8787`:
 
 ```bash
-npx quotagrid proxy --port 8787 --models gemini-2.5-flash,llama-3.1-8b-instant
+node dist/cli.js proxy --port 8787 --models gemini-2.5-flash,llama-3.1-8b-instant
 ```
 
 Use with any standard OpenAI SDK client:
@@ -383,7 +383,7 @@ console.log('Settle Tx:', completion.quotagrid.settleTxUrl);
 Run the demo agent showcasing proactive token budget tracking and automatic failover to QuotaGrid on Monad:
 
 ```bash
-npx quotagrid demo-agent --budget 120 --threshold 50
+node dist/cli.js demo-agent --budget 120 --threshold 50
 ```
 
 #### 7. Connect MCP Server to Claude Desktop

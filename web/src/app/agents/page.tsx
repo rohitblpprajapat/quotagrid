@@ -143,10 +143,10 @@ console.log('Result:', result.text);`}
             title="Terminal — Start Local Proxy"
             language="bash"
             code={`# Start local proxy on port 8787 with selected models
-npx quotagrid proxy --port 8787 --models gemini-3.5-flash-lite,llama-3.1-8b-instant
+node sdk/dist/cli.js proxy --port 8787 --models gemini-3.5-flash-lite,llama-3.1-8b-instant
 
 # Or start in hybrid proactive mode (forwards to primary until budget hits threshold)
-npx quotagrid proxy --port 8787 \\
+node sdk/dist/cli.js proxy --port 8787 \\
   --primary gemini \\
   --primary-key-env GEMINI_API_KEY \\
   --budget 10000 \\
@@ -279,13 +279,13 @@ console.log(completion.quotagrid?.settleTxUrl);`}
             title="Terminal"
             language="bash"
             code={`# Check agent wallet balance and Monad reserve safety
-npx quotagrid wallet
+node sdk/dist/cli.js wallet
 
 # List live models and pricing on Monad testnet
-npx quotagrid models
+node sdk/dist/cli.js models
 
 # Run the autonomous multi-step demo agent
-npx quotagrid demo-agent --budget 120 --threshold 50 --max-price 0.05`}
+node sdk/dist/cli.js demo-agent --budget 120 --threshold 50 --max-price 0.05`}
           />
         </section>
 

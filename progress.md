@@ -16,6 +16,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | 13:47 | Operator funded (5 MON, verified). contract2 done (17/17). Deployed QuotaGrid `0xC5A6…f5f1` + Sourcify verified. web/.env.local created. |
 
 | 13:55 | First commit pushed to github.com/rohitblpprajapat/quotagrid (e4054fc); secret scan clean. sdk resumed as sdk-fix1 with --boost. |
+| 14:20 | sdk-fix1 verified (18/18, live read OK), pushed 56482f5. web2 failed on slow WSL npm install → UI split into 4 parallel Windows agy runs (D-021). |
 
 ## Rubric checklist
 ### Basic (50)
@@ -43,11 +44,11 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | Research: event rules/rubric (live) | agy `research-event` | done → docs/research/event.md |
 | Research: AI provider APIs | agy `research-ai` | done → docs/research/ai-providers.md |
 | Contract `QuotaGrid.sol` + tests | agy `contract2` (Gemini) | done — 17/17 tests pass (rerun by supervisor) |
-| Web UI (market, sell, buy, activity, agents) | agy `web2` (Gemini) | running |
-| Agent SDK / proxy / MCP / demo agent | agy `sdk` → `sdk-fix1` (boost) | first run ended without report (files mostly written); resumed with --boost to finish + verify |
+| Web UI (market, sell, buy, activity, agents) | `web2` failed (50 min stuck in npm install on /mnt/d) → split into 4 parallel Windows runs `ui-core`, `ui-buy`, `ui-sell`, `ui-pages` (boost); deps installed by supervisor on Windows | running |
+| Agent SDK / proxy / MCP / demo agent | agy `sdk` → `sdk-fix1` (boost) | done — 18/18 tests (rerun by supervisor), live `models` read OK |
 | API routes (operator key, quote, execute) | agy `api` → `api-fix1` | done — D-013 multi-turn payload, crypto self-test PASS |
 | Deploy testnet + verify | supervisor | done — deployed + Sourcify verified (D-019) |
-| Host on Vercel | — | pending |
+| Host on Vercel | supervisor | Vercel CLI 65.11.0 installed; waiting for user `vercel login`; build will run on Vercel (D-022) |
 | README | — | pending |
 
 ## Needs from the user

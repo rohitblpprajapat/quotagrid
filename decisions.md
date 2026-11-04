@@ -152,3 +152,20 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   scan staged files for the real keys from `.env` / `web/.env.local` (none may appear). No AI attribution lines in commits.
 - **Why:** User approval; code must be on GitHub before the 17:30 code freeze, and frequent pushes make a lost machine or a
   bad agent edit recoverable.
+
+## D-021 — Build the UI with 4 parallel Windows agy runs; install deps on Windows
+- **Decision:** `web2` (WSL) spent its full 50 min in `npm install` on `/mnt/d` and wrote no UI. The UI is now split into
+  `ui-core` (shared libs, providers, layout, components — contract in `briefs/ui-shared.md`), `ui-buy` (market + pay & run),
+  `ui-sell` (list quota, my listings, earnings), `ui-pages` (landing, live activity feed, agents page), all on the Windows
+  host (edit-only) with `/boost`. The supervisor installs npm deps and runs the build on Windows.
+- **Why:** WSL ↔ Windows-drive file I/O makes npm installs extremely slow; Windows-side installs and edit-only agents avoid
+  it. Fixing the shared exports up front lets the four pages be written at the same time.
+
+## D-022 — Slow venue network: let Vercel build in the cloud; pin web deps by hand
+- **Finding (14:25):** HTTPS to registry.npmjs.org, npmmirror, yarnpkg and even google.com takes 10–20 s+ per request;
+  local `npm install` in `web/` failed with network errors (debug log `npm-cache/_logs/2026-11-04T08_36_52_190Z`).
+- **Decision:** Don't depend on a local `node_modules` for the web app. Pin deps in `web/package.json` from live registry
+  metadata — `wagmi 2.19.5` (latest 2.x; npm `latest` is 3.7.11, but all briefs target the v2 API; its peers are viem 2.x,
+  react >= 18, @tanstack/react-query >= 5), `viem 2.57.16`, `@tanstack/react-query 5.105.3` — and let Vercel's build
+  (fast network) install and type-check. Vercel CLI 65.11.0 is installed locally for deploys.
+- **Risk:** first type errors surface on the Vercel build instead of locally; mitigated by fixing quickly via redeploy.

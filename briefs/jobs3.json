@@ -1,0 +1,6 @@
+[
+ {"label": "ui-core", "host": "win", "brief": "ui-core.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1800, "boost": true},
+ {"label": "ui-buy", "host": "win", "brief": "ui-buy.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1800, "boost": true},
+ {"label": "ui-sell", "host": "win", "brief": "ui-sell.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1800, "boost": true},
+ {"label": "ui-pages", "host": "win", "brief": "ui-pages.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1800, "boost": true}
+]

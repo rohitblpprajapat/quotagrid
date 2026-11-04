@@ -97,5 +97,12 @@ export function parsePayload(payloadStr: string): CanonicalPayload {
     }
   }
 
+  const lastMsg = obj.messages[obj.messages.length - 1] as PromptMessage;
+  if (!lastMsg || lastMsg.role !== 'user') {
+    throw new Error(
+      `Last message in payload must have role "user" (received "${lastMsg?.role}")`
+    );
+  }
+
   return parsed as CanonicalPayload;
 }

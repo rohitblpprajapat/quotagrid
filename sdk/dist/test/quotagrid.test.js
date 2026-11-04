@@ -47,6 +47,10 @@ describe('QuotaGrid SDK Test Suite', () => {
             assert.throws(() => parsePayload('not json'), /Payload is not valid JSON/);
             assert.throws(() => parsePayload('{"v":2,"messages":[]}'), /Unsupported payload version/);
             assert.throws(() => parsePayload('{"v":1,"messages":[]}'), /non-empty array/);
+            assert.throws(() => parsePayload('{"v":1,"messages":[{"role":"user","content":"hi"},{"role":"assistant","content":"bye"}]}'), /Last message in payload must have role "user"/);
+        });
+        it('rejects buildPayload if last message is not role user', () => {
+            assert.throws(() => buildPayload({ messages: [{ role: 'assistant', content: 'hello' }] }), /Last message in payload must have role "user"/);
         });
     });
     describe('isQuotaError classification', () => {

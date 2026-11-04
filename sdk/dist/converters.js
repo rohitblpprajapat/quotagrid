@@ -37,6 +37,12 @@ export function openAiToPayload(req) {
             messages.push({ role: 'user', content: text });
         }
     }
+    if (messages.length === 0) {
+        messages.push({ role: 'user', content: '' });
+    }
+    else if (messages[messages.length - 1].role !== 'user') {
+        messages.push({ role: 'user', content: 'Continue' });
+    }
     const system = systemParts.length > 0 ? systemParts.join('\n\n') : undefined;
     const maxOutputTokens = req.max_completion_tokens ?? req.max_tokens ?? 512;
     return { system, messages, maxOutputTokens };
@@ -59,6 +65,12 @@ export function geminiToPayload(req) {
         const text = (c.parts || []).map((p) => p.text || '').join('');
         const role = c.role === 'model' ? 'assistant' : 'user';
         messages.push({ role, content: text });
+    }
+    if (messages.length === 0) {
+        messages.push({ role: 'user', content: '' });
+    }
+    else if (messages[messages.length - 1].role !== 'user') {
+        messages.push({ role: 'user', content: 'Continue' });
     }
     const maxOutputTokens = req.generationConfig?.maxOutputTokens ?? 512;
     return { system, messages, maxOutputTokens };

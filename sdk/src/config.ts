@@ -3,6 +3,7 @@ import { monadTestnet } from 'viem/chains';
 
 export const DEFAULT_MONAD_RPC = 'https://testnet-rpc.monad.xyz';
 export const DEFAULT_EXPLORER_URL = 'https://testnet.monadvision.com';
+export const DEFAULT_CONTRACT_ADDRESS: `0x${string}` = '0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1';
 export const MONAD_RESERVE_BALANCE_WEI = 10_000_000_000_000_000_000n; // 10 MON reserve (D-015)
 export const DEFAULT_GAS_MARGIN_WEI = 50_000_000_000_000_000n; // 0.05 MON safety margin
 
@@ -42,7 +43,8 @@ export function loadConfig(overrides?: Partial<QuotaGridConfig>): QuotaGridConfi
   let rawContract =
     overrides?.contractAddress ||
     process.env.QUOTAGRID_CONTRACT ||
-    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+    DEFAULT_CONTRACT_ADDRESS;
   let contractAddress: `0x${string}` | undefined = undefined;
   if (rawContract) {
     contractAddress = (rawContract.startsWith('0x') ? rawContract : `0x${rawContract}`) as `0x${string}`;

@@ -5,6 +5,13 @@ import { keccak256, toBytes } from 'viem';
  */
 export function buildPayload(options) {
     const { system, messages } = options;
+    if (!Array.isArray(messages) || messages.length === 0) {
+        throw new Error('Payload messages must be a non-empty array');
+    }
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'user') {
+        throw new Error(`Last message in payload must have role "user" (received "${lastMsg?.role}")`);
+    }
     return JSON.stringify({
         v: 1,
         ...(system ? { system } : {}),
@@ -61,6 +68,10 @@ export function parsePayload(payloadStr) {
         if (typeof msg.content !== 'string') {
             throw new Error(`Message at index ${i} content must be a string`);
         }
+    }
+    const lastMsg = obj.messages[obj.messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'user') {
+        throw new Error(`Last message in payload must have role "user" (received "${lastMsg?.role}")`);
     }
     return parsed;
 }

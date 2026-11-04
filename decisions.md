@@ -207,3 +207,18 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   ("allow most small accounts to still interact … normally", k blocks ≈ 1.2 s). The SDK now spaces its txs ≥ 1.5 s apart
   and its balance floor defaults to deposit + gas margin; `QUOTAGRID_MIN_RESERVE_MON=10` restores the strict D-015 floor.
 - **Why:** faucet wallets hold ~5 MON; the strict floor blocked the demo agent although the chain would accept its txs.
+
+## D-027 — Live end-to-end verification + resilience fixes
+- **Verified on Monad testnet (15:45–15:55), listing #1 `gemini-2.5-flash` @ 0.001 MON/1k by seller `0x1969…cEA8`:**
+  - Request #2 (raw API script `sdk/scripts/e2e-raw.mjs`): T_max 135 → T_used 17; payout 0.000016575 + fee 0.000000425 +
+    refund 0.000118 = deposit 0.000135 MON exactly. Open `0x068ff237…91aa`, settle `0xb6761fb7…b2fb`.
+  - Request #3 (SDK `sdk/scripts/e2e-live.mjs`): T_max 146 → T_used 71; split check PASS; 5.7 s end-to-end.
+    Open `0xdeb3eb29…4dde`, settle `0x536151d8…ed89`.
+  - Demo agent: steps 1–4 bought via escrow + settle (4–6 s each). Steps 5–6 hit Gemini `503 UNAVAILABLE
+    "high demand"` → server cancelled on-chain with 100% refund (cancel txs `0x695924bd…5266`, `0xa0fd3fd5…d278`).
+- **Fix 1 (SDK):** a response carrying `cancelTx` (or 409 "not open") is terminal — the SDK now throws the provider error +
+  cancel tx instead of retrying a cancelled request (that retry had hidden the real 503 on request #1).
+- **Fix 2 (server):** transient provider errors (429/5xx, UNAVAILABLE, "high demand") are retried up to 2 more times with
+  1.2 s / 2.4 s backoff before cancel + refund. Non-transient errors still fail fast.
+- **Why:** the 3-minute stage demo needs a live call to land; provider overload is outside our control, but refund-on-failure
+  plus a short retry keeps the demo honest and likely to succeed.

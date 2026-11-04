@@ -485,16 +485,31 @@ export class QuotaGridClient {
           signal: AbortSignal.timeout(35000),
         });
 
-        if (res.status === 409) {
-          // Another request processing or lock wait, retry after 2s
-          if (attempt < 4) {
+        if (!res.ok) {
+          const errText = await res.text();
+          let errJson: { error?: string; cancelTx?: string } | null = null;
+          try {
+            errJson = JSON.parse(errText);
+          } catch {
+            /* not JSON */
+          }
+          // The server already cancelled the request on-chain (provider failure): 100% refunded.
+          // Never retry a cancelled request — surface the provider error and the cancel tx.
+          if (errJson?.cancelTx) {
+            throw new QuotaGridError(
+              `Provider call failed and request ${requestId} was cancelled with a full refund (cancel tx ${errJson.cancelTx}): ${errJson.error ?? 'unknown error'}`
+            );
+          }
+          // 409 "not open": the request is already settled/cancelled — retrying cannot help.
+          if (res.status === 409 && /not open/i.test(errText)) {
+            lastError = new Error(`HTTP 409: ${errText}`);
+            break;
+          }
+          // 409 lock held: the same request is executing right now; wait and retry.
+          if (res.status === 409 && attempt < 4) {
             await new Promise((r) => setTimeout(r, 2000));
             continue;
           }
-        }
-
-        if (!res.ok) {
-          const errText = await res.text();
           lastError = new Error(`HTTP ${res.status}: ${errText}`);
           // Retry on 5xx server errors
           if (res.status >= 500 && attempt < 4) {
@@ -507,6 +522,7 @@ export class QuotaGridClient {
         executeData = await res.json();
         break;
       } catch (err: any) {
+        if (err instanceof QuotaGridError) throw err; // cancelled / terminal: don't retry
         lastError = err;
         if (attempt < 4) {
           await new Promise((r) => setTimeout(r, 1500));

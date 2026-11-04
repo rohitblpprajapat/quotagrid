@@ -181,16 +181,33 @@ export async function complete(
     throw new Error('API key is required for completion');
   }
 
-  try {
+  const callOnce = () => {
     if (normalizedProvider === 'gemini') {
-      return await completeGemini(model, apiKey, payload, maxOutputTokens);
+      return completeGemini(model, apiKey, payload, maxOutputTokens);
     } else if (normalizedProvider === 'anthropic') {
-      return await completeAnthropic(model, apiKey, payload, maxOutputTokens);
+      return completeAnthropic(model, apiKey, payload, maxOutputTokens);
     } else if (normalizedProvider === 'openai-compatible') {
-      return await completeOpenAICompatible(model, apiKey, payload, maxOutputTokens);
-    } else {
-      throw new Error(`Unsupported provider: ${provider}`);
+      return completeOpenAICompatible(model, apiKey, payload, maxOutputTokens);
     }
+    throw new Error(`Unsupported provider: ${provider}`);
+  };
+
+  // Transient provider overload (seen live: Gemini 503 "high demand") — retry up to 2 more times with backoff
+  // before the caller cancels + refunds the escrow. Non-transient errors fail immediately.
+  const transient = /status (429|500|502|503|504)\b|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i;
+  try {
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await callOnce();
+      } catch (err: unknown) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!transient.test(msg) || attempt === 2) throw err;
+        await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+      }
+    }
+    throw lastErr;
   } catch (err: unknown) {
     throw cleanError(err, apiKey);
   }

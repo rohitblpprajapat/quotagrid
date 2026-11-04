@@ -67,7 +67,8 @@ refunded, 5–6.5 s each.
 | Seller key out of quota (429) | That listing fails and refunds 100 %. Deactivate it in /sell and use a listing that passed `validate-listings`. |
 | Listing quota exhausted | Seller adds quota in `/sell` → My listings (one tx), or a second listing. |
 
-## Numbers you can quote (all verified today, see decisions.md D-027)
+## Numbers you can quote (all verified today, see decisions.md D-027 / D-032)
+- **Contract v2, request #1 (17:13):** reserved 146 tokens, used 60, refund 0.000086 MON, **4.2 s end-to-end**, settlement gas paid by treasury (buyer paid 0 gas fee).
 - Request #3: reserved 146 tokens, used 71, refund 0.000075 MON, **5.7 s end-to-end** (escrow → model → settle).
 - Monad docs: 300 ms blocks, finality in 2 blocks (~600 ms).
 - Contract `0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630`, verified on Sourcify.

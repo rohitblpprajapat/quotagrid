@@ -56,6 +56,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | Deploy testnet + verify | supervisor | done — deployed + Sourcify verified (D-019) |
 | Host on Vercel | supervisor | done — https://quotagrid.vercel.app (smoke-tested, D-024) |
 | Listing-time key check (D-029) | supervisor | done — /api/validate-listing + Sell form gate, verified live against Gemini/Anthropic |
+| Contract v2 settle fee (D-031) + treasury-paid gas (D-032) | supervisor | done — redeployed 0xE152…E630, verified, relisted, preflight PASS, live e2e PASS 4.2 s (17:13) |
 | README | agy `readme` + supervisor fixes | done — live URL filled, CLI commands corrected to `node dist/cli.js` (package not on npm), Node >= 22.12 |
 
 ## Needs from the user

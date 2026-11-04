@@ -19,7 +19,7 @@ export interface ConnectButtonProps {
 export function ConnectButton({ className = '' }: ConnectButtonProps) {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected } = useAccount();
-  const { connect, isPending: isConnecting } = useConnect();
+  const { connect, connectors, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
   const { chainId: walletChainId } = useAccount();
@@ -43,12 +43,32 @@ export function ConnectButton({ className = '' }: ConnectButtonProps) {
     );
   }
 
-  // Not connected
+  // Not connected. With several wallet extensions installed they fight over window.ethereum, so offer each
+  // EIP-6963-announced wallet by name (wagmi discovers them by default) and let the user pick.
+  const discovered = connectors.filter((c) => c.id !== 'injected');
+  if ((!isConnected || !address) && discovered.length > 1) {
+    return (
+      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+        {discovered.map((c) => (
+          <button
+            key={c.uid}
+            type="button"
+            onClick={() => connect({ connector: c })}
+            disabled={isConnecting}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-3 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {c.icon ? <img src={c.icon} alt="" className="h-4 w-4" /> : null}
+            {c.name}
+          </button>
+        ))}
+      </div>
+    );
+  }
   if (!isConnected || !address) {
     return (
       <button
         type="button"
-        onClick={() => connect({ connector: injected() })}
+        onClick={() => connect({ connector: discovered[0] ?? injected() })}
         disabled={isConnecting}
         className={`inline-flex items-center justify-center gap-2 rounded-lg bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 py-2 text-sm font-medium transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/50 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       >

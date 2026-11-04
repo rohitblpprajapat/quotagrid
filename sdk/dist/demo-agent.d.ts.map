@@ -1,0 +1,1 @@
+{"version":3,"file":"demo-agent.d.ts","sourceRoot":"","sources":["../src/demo-agent.ts"],"names":[],"mappings":"AAeA,MAAM,WAAW,gBAAgB;IAC/B,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,MAAM,CAAC,EAAE,MAAM,EAAE,CAAC;IAClB,oBAAoB,CAAC,EAAE,MAAM,CAAC;CAC/B;AAWD,wBAAsB,YAAY,CAAC,OAAO,GAAE,gBAAqB,GAAG,OAAO,CAAC,IAAI,CAAC,CA+KhF"}

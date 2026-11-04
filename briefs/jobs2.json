@@ -1,0 +1,4 @@
+[
+ {"label": "contract2", "host": "wsl", "brief": "contract.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 2400},
+ {"label": "web2", "host": "wsl", "brief": "web.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 3000}
+]

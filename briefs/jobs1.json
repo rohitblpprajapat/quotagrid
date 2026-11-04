@@ -1,0 +1,8 @@
+[
+ {"label": "research-chain", "host": "wsl", "brief": "research-chain.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1500},
+ {"label": "research-event", "host": "wsl", "brief": "research-event.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1500},
+ {"label": "research-ai", "host": "wsl", "brief": "research-ai.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 1500},
+ {"label": "contract", "host": "wsl", "brief": "contract.md", "cwd": "..", "model": "claude-opus-4-6-thinking", "timeout": 2400},
+ {"label": "web", "host": "wsl", "brief": "web.md", "cwd": "..", "model": "claude-sonnet-4-6", "timeout": 3000},
+ {"label": "api", "host": "wsl", "brief": "api.md", "cwd": "..", "model": "gemini-3.8-flash-high", "timeout": 2400}
+]

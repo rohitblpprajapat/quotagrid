@@ -93,11 +93,11 @@ export function CreateListingForm({ onListingCreated }: CreateListingFormProps) 
     let quotaBigInt: bigint;
     try {
       quotaBigInt = BigInt(quota.trim());
-      if (quotaBigInt <= 0n) {
-        throw new Error('Quota must be greater than 0');
+      if (quotaBigInt < 1000n || quotaBigInt > 100000000n) {
+        throw new Error('out of range');
       }
     } catch {
-      setError('Invalid quota. Please enter a positive integer of tokens.');
+      setError('Invalid quota. Enter a whole number of tokens between 1,000 and 100,000,000.');
       return;
     }
 
@@ -115,7 +115,20 @@ export function CreateListingForm({ onListingCreated }: CreateListingFormProps) 
       // 3. Clear plaintext key from state immediately after encrypting
       setApiKey('');
 
-      // 4. Submit createListing transaction via wagmi
+      // 4. Listing-time check (D-029): the server decrypts in RAM and makes one real tiny call with this key + model.
+      //    Nothing goes on-chain unless the key can actually serve paid calls.
+      setStatusStep('Testing your key with the provider...');
+      const check = await fetch('/api/validate-listing', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ provider, model: model.trim(), encryptedKey: encryptedHex, quota: quotaBigInt.toString() }),
+      });
+      const checkBody = (await check.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!check.ok || !checkBody.ok) {
+        throw new Error(`Key check failed: ${checkBody.error || `HTTP ${check.status}`} Nothing was listed.`);
+      }
+
+      // 5. Submit createListing transaction via wagmi
       setStatusStep('Waiting for wallet signature...');
       await ensureMonad();
       const txHash = await writeContractAsync({
@@ -314,11 +327,11 @@ export function CreateListingForm({ onListingCreated }: CreateListingFormProps) 
             {/* Quota Tokens */}
             <Field
               label="Quota Capacity (Tokens)"
-              hint="Total token pool to allocate for this listing"
+              hint="Total token pool to allocate (1,000 – 100,000,000). Your key is test-called once before listing."
             >
               <Input
                 type="number"
-                min="1"
+                min="1000"
                 step="1"
                 value={quota}
                 onChange={(e) => setQuota(e.target.value)}

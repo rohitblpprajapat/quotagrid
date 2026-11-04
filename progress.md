@@ -55,6 +55,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | API routes (operator key, quote, execute) | agy `api` → `api-fix1` | done — D-013 multi-turn payload, crypto self-test PASS |
 | Deploy testnet + verify | supervisor | done — deployed + Sourcify verified (D-019) |
 | Host on Vercel | supervisor | done — https://quotagrid.vercel.app (smoke-tested, D-024) |
+| Listing-time key check (D-029) | supervisor | done — /api/validate-listing + Sell form gate, verified live against Gemini/Anthropic |
 | README | agy `readme` + supervisor fixes | done — live URL filled, CLI commands corrected to `node dist/cli.js` (package not on npm), Node >= 22.12 |
 
 ## Needs from the user

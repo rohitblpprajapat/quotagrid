@@ -3,7 +3,7 @@
 Rule to hit: **a live on-chain transaction during the 3 minutes.** We do two: a human buy and an agent buy.
 
 ## Setup (before going on stage)
-- **Laptop screen 1 (browser):** tab A `https://quotagrid.vercel.app/buy/1`, tab B `https://quotagrid.vercel.app/activity`,
+- **Laptop screen 1 (browser):** tab A `https://quotagrid.vercel.app/buy/3` (a listing that passed the key check), tab B `https://quotagrid.vercel.app/activity`,
   tab C the settle tx on `testnet.monadvision.com` (fallback). Wallet connected **on Monad Testnet**, > 1 MON.
 - **Laptop screen 2 (terminal):** in `sdk/`, command typed but not run:
   `node --env-file=.env dist/cli.js demo-agent --models gemini-2.5-flash --max-price 0.01`
@@ -11,6 +11,8 @@ Rule to hit: **a live on-chain transaction during the 3 minutes.** We do two: a 
   agent runs QuotaGrid-only — still a live tx, but no "switch" moment).
 - Check right before (read-only, spends nothing): `node --env-file=.env scripts/preflight.mjs` in `sdk/` → must print
   `ALL CHECKS PASSED`. It checks RPC, contract, listing quota, all wallet balances, and does a live quote on every listing.
+- Seller keys (spends one tiny call per listing, no MON): `node --env-file=.env scripts/validate-listings.mjs` → every
+  active listing must print `USABLE`. Deactivate any that don't (/sell → My listings), or the agent may pick them.
 - Zoom browser to 125–150 % so numbers read from the back.
 
 ## Script
@@ -61,6 +63,7 @@ refunded, 5–6.5 s each.
 | Gemini 503 / provider error | Say: "Provider's overloaded — watch: cancelled, 100 % refunded." Show the cancel tx. That *is* the safety demo. Then retry once. |
 | Wallet popup doesn't appear | Use the agent terminal as the live tx; show tab C as the earlier human settle. |
 | Venue Wi-Fi slow | Phone hotspot. The agent CLI needs only RPC + our API. |
+| Seller key out of quota (429) | That listing fails and refunds 100 %. Deactivate it in /sell and use a listing that passed `validate-listings`. |
 | Listing quota exhausted | Seller adds quota in `/sell` → My listings (one tx), or a second listing. |
 
 ## Numbers you can quote (all verified today, see decisions.md D-027)

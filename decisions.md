@@ -237,3 +237,27 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   should deactivate or fix it on `/sell`.
 - **Lock:** after this commit, no code changes on the demo path (buy page, API routes, contract, SDK core, demo agent)
   unless a blocking bug appears. Reason: user asked to plan for a single, reliable live demo.
+
+## D-029 — Listing-time key check (user request, 16:20)
+- **Decision:** before the seller signs `createListing`, the Sell page sends the *already encrypted* key to
+  `POST /api/validate-listing`. The server decrypts it in RAM and makes **one real generation call** (8 output tokens) on
+  the chosen provider + model. If it fails, the listing is blocked with a reason the seller can act on: key rejected
+  (401/403), model unknown (404), no usable quota (429 / billing), or provider not responding. Quota must be 1,000 to
+  100,000,000 tokens (checked in the form and on the server).
+- **Why a real call and not the free count endpoint:** countTokens / count_tokens accept keys that have no credits left,
+  so they don't prove the key can serve a paid call. The test call costs the seller a fraction of a cent.
+- **Limits (stated honestly):** providers don't expose a remaining balance, so we can't prove the seller has the full
+  listed quota. A seller who calls the contract directly skips the check, and a key can be revoked after listing. The
+  backstop stays the same: cancel + 100% refund on provider failure, and buyer reclaim after 600 s.
+- **Verified live (local build against the real providers):**
+  - fake Gemini key → "rejected";
+  - real key with a nonexistent model → "model does not exist";
+  - quota 10 → 400;
+  - the agent's primary Gemini key → 429 "exceeded your current quota" (a correct rejection: that key really is
+    exhausted).
+- **Re-check of existing listings** (`sdk/scripts/validate-listings.mjs`, uses the on-chain ciphertext):
+  - #1 gemini → 429 quota exhausted (still 429 after waiting, so a daily limit);
+  - #2 anthropic → 401 "invalid x-api-key";
+  - #3 gemini → usable, in about 1 s.
+- **Demo consequence:** the SDK picks the lowest listing id at equal price, so #1 would be chosen and fail (refunded).
+  #1 and #2 must be deactivated in /sell → My listings, and the human demo uses `/buy/3`.

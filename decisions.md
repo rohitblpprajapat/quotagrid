@@ -319,3 +319,16 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   when the call is worth more than ~0.05 MON. The real fix for small calls is a prepaid tab (one escrow, many calls,
   batched settle). That is roadmap, not built.
 - **Consequence:** listings live on the old contract, so sellers must relist (with the D-029 key check).
+
+## D-032 — Treasury pays settlement gas, not the buyer (user decision 17:12)
+- **Decision:** owner set `settleFee = 0` on the v2 contract (tx
+  `0x10b308569d1e179b791cd9b1805c246653ea7c2054debf1d4d86907eba29fff3`, `SettleFeeUpdated(0)`), using the new
+  `scripts/set-settle-fee.sh <contract> <wei>`. Buyers again pay only for tokens used; the receipt hides the gas line
+  when the fee is 0.
+- **Who pays now:** the operator wallet signs settle and pays its gas; the **treasury** (owner wallet
+  0xF01D…b179, which collects `protocolFees` via `withdrawFees`) funds it by topping up the operator. That's a
+  protocol subsidy, stated honestly: at ~0.017 MON per settle vs ~0.000007 MON fee per small call, the treasury loses
+  money on every small call until volume or prices rise.
+- **Kept the v2 mechanism:** the owner can turn the buyer-paid fee back on at any time (`setSettleFee`, cap 1 MON),
+  e.g. once subsidy runs out. Mainnet plan: subsidise small calls from treasury, or charge the fee only above a
+  threshold (needs contract v3), or move to a prepaid tab with batched settlement (D-031).

@@ -28,7 +28,7 @@ Rule to hit: **a live on-chain transaction during the 3 minutes.** We do two: a 
    > "QuotaGrid counts the exact input tokens and adds the max output: that's T-max, the worst case. I escrow only that."
 3. **Pay & run** → approve in wallet.
    > "That's an escrow on Monad… the model is running… and settled."
-4. Point at the receipt: tokens reserved vs used, seller payout, 2.5 % fee, the flat settlement-gas fee (amber), **refund in green**.
+4. Point at the receipt: tokens reserved vs used, seller payout, 2.5 % fee, **refund in green**.
    > "I reserved ~140 tokens, used ~40. The seller got paid for exactly what I used, and the rest came back to me in the
    > same transaction. Escrow, answer, settlement, refund — about five seconds."
 
@@ -51,7 +51,7 @@ refunded, 5–6.5 s each.
 - "Prompt is bound on-chain by hash — nobody can spend my deposit on a different prompt."
 - "If the provider fails, the operator cancels and I get 100 % back — we saw Gemini return 503s today and every one refunded."
 - "If the operator disappears, I reclaim my deposit myself after 10 minutes."
-- "Gas is paid honestly: a flat settle fee in the escrow pays the operator's settlement gas, so the operator can't be bled dry — and it's refunded 100 % if the call fails."
+- "Settlement gas is paid by the protocol treasury, not by you; the contract can switch to a buyer-paid settle fee with one owner call if that ever changes."
 - "Contract is verified on Sourcify; 21 Foundry tests incl. a fuzz test that payout + fee + refund always equals the deposit."
 
 **2:40 – 3:00 · Business + close**

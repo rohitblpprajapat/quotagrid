@@ -65,6 +65,11 @@ contract QuotaGrid is ReentrancyGuard {
     uint256 public requestCount;
     mapping(address => uint256) public balances;
     uint256 public protocolFees;
+    /// @notice Flat fee per request that pays the operator back for the settle transaction's gas (D-031).
+    /// Escrowed at open, credited to the operator on settle, fully refunded on cancel/reclaim.
+    uint256 public settleFee;
+    uint256 public constant MAX_SETTLE_FEE = 1 ether;
+    mapping(uint256 => uint256) public requestSettleFee;
 
     mapping(uint256 => Listing) private _listings;
     mapping(uint256 => Request) private _requests;
@@ -103,6 +108,7 @@ contract QuotaGrid is ReentrancyGuard {
         uint256 indexed requestId,
         uint256 refund
     );
+    event SettleFeeUpdated(uint256 settleFee);
     event Withdrawn(
         address indexed seller,
         uint256 amount
@@ -127,6 +133,7 @@ contract QuotaGrid is ReentrancyGuard {
     error NoBalanceToWithdraw();
     error TransferFailed();
     error ZeroAddress();
+    error InvalidSettleFee();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert Unauthorized();
@@ -157,6 +164,12 @@ contract QuotaGrid is ReentrancyGuard {
         feeBps = bps;
     }
 
+    function setSettleFee(uint256 fee) external onlyOwner {
+        if (fee > MAX_SETTLE_FEE) revert InvalidSettleFee();
+        settleFee = fee;
+        emit SettleFeeUpdated(fee);
+    }
+
     function withdrawFees(address to) external nonReentrant onlyOwner {
         if (to == address(0)) revert ZeroAddress();
         uint256 amount = protocolFees;
@@ -179,7 +192,13 @@ contract QuotaGrid is ReentrancyGuard {
         return req;
     }
 
+    /// @notice Deposit needed to open a request for `tokens`: token cost plus the current settle fee.
     function quote(uint256 listingId, uint256 tokens) public view returns (uint256) {
+        return tokenCost(listingId, tokens) + settleFee;
+    }
+
+    /// @notice Price of `tokens` on a listing, rounded up to the next wei.
+    function tokenCost(uint256 listingId, uint256 tokens) public view returns (uint256) {
         Listing storage listing = _listings[listingId];
         if (listing.seller == address(0)) revert ListingNotFound();
         if (tokens == 0) return 0;
@@ -252,6 +271,7 @@ contract QuotaGrid is ReentrancyGuard {
 
         uint256 reqCost = quote(listingId, tMax);
         if (msg.value < reqCost) revert InsufficientDeposit();
+        uint256 fee = settleFee;
 
         listing.quotaLocked += tMax;
 
@@ -267,6 +287,8 @@ contract QuotaGrid is ReentrancyGuard {
             status: uint8(Status.Open),
             tUsed: 0
         });
+
+        requestSettleFee[id] = fee;
 
         emit RequestOpened(id, listingId, msg.sender, tMax, msg.value, promptHash);
         return id;
@@ -284,17 +306,19 @@ contract QuotaGrid is ReentrancyGuard {
         uint256 listingId = req.listingId;
         Listing storage listing = _listings[listingId];
 
-        uint256 costUsed = quote(listingId, tUsed);
+        uint256 costUsed = tokenCost(listingId, tUsed);
         uint256 fee = (costUsed * feeBps) / 10000;
         uint256 sellerPayout = costUsed - fee;
+        uint256 opFee = requestSettleFee[requestId];
 
         balances[listing.seller] += sellerPayout;
         protocolFees += fee;
+        if (opFee > 0) balances[operator] += opFee;
 
         listing.quotaLocked -= req.tMax;
         listing.quotaUsed += tUsed;
 
-        uint256 refund = req.deposit - costUsed;
+        uint256 refund = req.deposit - costUsed - opFee;
 
         emit RequestSettled(requestId, tUsed, sellerPayout, fee, refund);
 

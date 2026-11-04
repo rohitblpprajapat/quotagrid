@@ -715,4 +715,95 @@ contract QuotaGridTest is Test {
             "sellerCredit + fee + refund must exactly equal deposit"
         );
     }
+
+    // ---------------------------------------------------------------
+    // D-031: settle fee reimburses the operator's settle gas
+    // ---------------------------------------------------------------
+    function test_SettleFeeOnlyOwnerAndCapped() public {
+        vm.prank(stranger);
+        vm.expectRevert(QuotaGrid.Unauthorized.selector);
+        grid.setSettleFee(1);
+
+        vm.prank(owner);
+        vm.expectRevert(QuotaGrid.InvalidSettleFee.selector);
+        grid.setSettleFee(1 ether + 1);
+
+        vm.prank(owner);
+        grid.setSettleFee(0.025 ether);
+        assertEq(grid.settleFee(), 0.025 ether);
+    }
+
+    function test_SettleFeePaidToOperatorOnSettle() public {
+        vm.prank(owner);
+        grid.setSettleFee(100);
+        vm.prank(seller);
+        uint256 id = grid.createListing("openai", "gpt-4o", 1000, 10000, hex"abcd");
+
+        assertEq(grid.tokenCost(id, 1000), 1000);
+        assertEq(grid.quote(id, 1000), 1100); // cost + settle fee
+
+        vm.prank(buyer);
+        vm.expectRevert(QuotaGrid.InsufficientDeposit.selector);
+        grid.openRequest{value: 1000}(id, 1000, keccak256("p"));
+
+        vm.prank(buyer);
+        uint256 reqId = grid.openRequest{value: 1100}(id, 1000, keccak256("p"));
+
+        // Owner raising the fee later must not change what this open request pays.
+        vm.prank(owner);
+        grid.setSettleFee(500);
+
+        uint256 buyerBefore = buyer.balance;
+        vm.prank(operator);
+        vm.expectEmit(true, false, false, true);
+        emit RequestSettled(reqId, 600, 585, 15, 400); // refund = 1100 - 600 - 100
+        grid.settle(reqId, 600);
+
+        assertEq(grid.balances(operator), 100);
+        assertEq(grid.balances(seller), 585);
+        assertEq(grid.protocolFees(), 15);
+        assertEq(buyer.balance, buyerBefore + 400);
+    }
+
+    function test_SettleFeeRefundedOnCancelAndReclaim() public {
+        vm.prank(owner);
+        grid.setSettleFee(100);
+        vm.prank(seller);
+        uint256 id = grid.createListing("openai", "gpt-4o", 1000, 10000, hex"abcd");
+
+        vm.prank(buyer);
+        uint256 r1 = grid.openRequest{value: 1100}(id, 1000, keccak256("a"));
+        uint256 before = buyer.balance;
+        vm.prank(operator);
+        grid.cancel(r1);
+        assertEq(buyer.balance, before + 1100);
+        assertEq(grid.balances(operator), 0);
+
+        vm.prank(buyer);
+        uint256 r2 = grid.openRequest{value: 1100}(id, 1000, keccak256("b"));
+        vm.warp(block.timestamp + 601);
+        before = buyer.balance;
+        vm.prank(buyer);
+        grid.reclaim(r2);
+        assertEq(buyer.balance, before + 1100);
+        assertEq(grid.balances(operator), 0);
+    }
+
+    function testFuzz_SettleFeeConservation(uint96 price, uint32 tMax, uint32 tUsed, uint64 fee, uint64 extra) public {
+        price = uint96(bound(price, 1, 1e21));
+        tMax = uint32(bound(tMax, 1, 1_000_000));
+        tUsed = uint32(bound(tUsed, 0, tMax));
+        fee = uint64(bound(fee, 0, 1 ether));
+        vm.prank(owner);
+        grid.setSettleFee(fee);
+        vm.prank(seller);
+        uint256 id = grid.createListing("openai", "gpt-4o", price, 2_000_000, hex"abcd");
+        uint256 deposit = grid.quote(id, tMax) + extra;
+        vm.deal(buyer, deposit);
+        vm.prank(buyer);
+        uint256 reqId = grid.openRequest{value: deposit}(id, tMax, keccak256("f"));
+        vm.prank(operator);
+        grid.settle(reqId, tUsed);
+        assertEq(grid.balances(seller) + grid.protocolFees() + grid.balances(operator) + buyer.balance, deposit);
+    }
 }

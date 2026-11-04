@@ -25,7 +25,7 @@ Rubric: post on X / LinkedIn tagging **@monad @monad_dev @geeky_kartikey**, a 30
    > Today's test: reserved 146 tokens, used 71, refund back, 5.7 s from escrow to settlement.
 4. > Try it: https://quotagrid.vercel.app
    > Code: https://github.com/rohitblpprajapat/quotagrid
-   > Contract (verified): 0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1
+   > Contract (verified): 0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630
 
 ## Teaser video idea (10–15 s, the "creative" point)
 Screen recording, no voice-over, captions only:

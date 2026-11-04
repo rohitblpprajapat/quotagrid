@@ -29,5 +29,11 @@ export const quotaGridAbi = parseAbi([
     'event RequestSettled(uint256 indexed requestId, uint256 tUsed, uint256 sellerPayout, uint256 fee, uint256 refund)',
     'event RequestCancelled(uint256 indexed requestId, uint256 refund)',
     'event Withdrawn(address indexed seller, uint256 amount)',
+    'function settleFee() view returns (uint256)',
+    'function MAX_SETTLE_FEE() view returns (uint256)',
+    'function requestSettleFee(uint256 requestId) view returns (uint256)',
+    'function tokenCost(uint256 listingId, uint256 tokens) view returns (uint256)',
+    'function setSettleFee(uint256 fee)',
+    'event SettleFeeUpdated(uint256 settleFee)',
 ]);
 //# sourceMappingURL=abi.js.map

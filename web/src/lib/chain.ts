@@ -9,7 +9,7 @@ export const EXPLORER_URL =
 
 export const CONTRACT_ADDRESS: `0x${string}` =
   (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`) ||
-  '0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1';
+  '0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630';
 
 export const monad = defineChain({
   ...baseMonadTestnet,

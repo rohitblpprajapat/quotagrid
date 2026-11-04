@@ -19,10 +19,10 @@ The buyer escrows the worst-case token cost ($T_{\text{max}}$) in native MON on 
 | Resource | Value / Link |
 | :--- | :--- |
 | **Live Web App** | `https://quotagrid.vercel.app` |
-| **Deployed Contract** | [`0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1`](https://testnet.monadvision.com/address/0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1) |
+| **Deployed Contract** | [`0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630`](https://testnet.monadvision.com/address/0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630) |
 | **Deployment Transaction** | [`0x14efce9ca1fb0ad9a58ea90517d0878ab4d88c6037d7432915e8d90cfeb898c4`](https://testnet.monadvision.com/tx/0x14efce9ca1fb0ad9a58ea90517d0878ab4d88c6037d7432915e8d90cfeb898c4) |
 | **Contract Verification** | [Sourcify Match Job `beda484b-eade-40f9-8ff7-a9e88a157756`](https://sourcify-api-monad.blockvision.org/verify-ui/jobs/beda484b-eade-40f9-8ff7-a9e88a157756) |
-| **Monad Testnet Explorer** | [MonadVision](https://testnet.monadvision.com/address/0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1) |
+| **Monad Testnet Explorer** | [MonadVision](https://testnet.monadvision.com/address/0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630) |
 | **Demo Video** | `DEMO_VIDEO_TBD` |
 | **Source Repository** | [github.com/rohitblpprajapat/quotagrid](https://github.com/rohitblpprajapat/quotagrid) |
 | **Contract Owner** | `0xF01D4dDF483F0c125df2C9cdf72485356798b179` |
@@ -219,7 +219,7 @@ cd quotagrid
 ### Step 2: Smart Contracts (Foundry)
 
 > [!NOTE]
-> You can skip contract deployment and directly use the already-deployed verified contract on Monad Testnet at `0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1`.
+> You can skip contract deployment and directly use the already-deployed verified contract on Monad Testnet at `0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630`.
 
 #### 1. Build and Run Tests
 
@@ -287,7 +287,7 @@ cat << 'EOF' > .env.local
 NEXT_PUBLIC_CHAIN_ID=10143
 NEXT_PUBLIC_RPC_URL=https://testnet-rpc.monad.xyz
 NEXT_PUBLIC_EXPLORER_URL=https://testnet.monadvision.com
-NEXT_PUBLIC_CONTRACT_ADDRESS=0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630
 OPERATOR_PRIVATE_KEY=0xYOUR_OPERATOR_HOT_WALLET_PRIVATE_KEY
 OPERATOR_RSA_PRIVATE_KEY=YOUR_BASE64_RSA_KEY_FROM_STEP_2
 EOF
@@ -331,7 +331,7 @@ All 18 unit tests will pass.
 
 ```bash
 export QUOTAGRID_API_URL="http://localhost:3000"
-export QUOTAGRID_CONTRACT="0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1"
+export QUOTAGRID_CONTRACT="0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630"
 export QUOTAGRID_PRIVATE_KEY="0xYOUR_AGENT_WALLET_PRIVATE_KEY"
 export MONAD_RPC_URL="https://testnet-rpc.monad.xyz"
 ```
@@ -398,7 +398,7 @@ Add to `claude_desktop_config.json`:
       "args": ["quotagrid", "mcp"],
       "env": {
         "QUOTAGRID_API_URL": "http://localhost:3000",
-        "QUOTAGRID_CONTRACT": "0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1",
+        "QUOTAGRID_CONTRACT": "0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630",
         "QUOTAGRID_PRIVATE_KEY": "0xYOUR_AGENT_WALLET_PRIVATE_KEY",
         "MONAD_RPC_URL": "https://testnet-rpc.monad.xyz"
       }

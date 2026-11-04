@@ -27,7 +27,7 @@ npm install -g quotagrid
 | :--- | :--- | :--- |
 | `QUOTAGRID_API_URL` | Base URL of the QuotaGrid backend API | `http://localhost:3000` |
 | `QUOTAGRID_PRIVATE_KEY` | Agent Monad wallet private key (`0x...`) | *(Required for execution)* |
-| `QUOTAGRID_CONTRACT` | Deployed QuotaGrid contract address on Monad | `0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1` |
+| `QUOTAGRID_CONTRACT` | Deployed QuotaGrid contract address on Monad | `0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630` |
 | `MONAD_RPC_URL` | Monad JSON-RPC endpoint | `https://testnet-rpc.monad.xyz` |
 
 ---
@@ -104,7 +104,7 @@ Add to `claude_desktop_config.json`:
       "env": {
         "QUOTAGRID_API_URL": "https://your-quotagrid-app.com",
         "QUOTAGRID_PRIVATE_KEY": "0x...",
-        "QUOTAGRID_CONTRACT": "0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1",
+        "QUOTAGRID_CONTRACT": "0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630",
         "MONAD_RPC_URL": "https://testnet-rpc.monad.xyz"
       }
     }
@@ -129,7 +129,7 @@ import { QuotaGridClient } from 'quotagrid';
 const client = new QuotaGridClient({
   apiUrl: 'https://your-app.com',
   privateKey: '0x...',
-  contractAddress: '0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1',
+  contractAddress: '0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630',
 });
 
 // 1. Check active listings

@@ -403,5 +403,62 @@ export declare const quotaGridAbi: readonly [{
         readonly type: "uint256";
         readonly name: "amount";
     }];
+}, {
+    readonly name: "settleFee";
+    readonly type: "function";
+    readonly stateMutability: "view";
+    readonly inputs: readonly [];
+    readonly outputs: readonly [{
+        readonly type: "uint256";
+    }];
+}, {
+    readonly name: "MAX_SETTLE_FEE";
+    readonly type: "function";
+    readonly stateMutability: "view";
+    readonly inputs: readonly [];
+    readonly outputs: readonly [{
+        readonly type: "uint256";
+    }];
+}, {
+    readonly name: "requestSettleFee";
+    readonly type: "function";
+    readonly stateMutability: "view";
+    readonly inputs: readonly [{
+        readonly type: "uint256";
+        readonly name: "requestId";
+    }];
+    readonly outputs: readonly [{
+        readonly type: "uint256";
+    }];
+}, {
+    readonly name: "tokenCost";
+    readonly type: "function";
+    readonly stateMutability: "view";
+    readonly inputs: readonly [{
+        readonly type: "uint256";
+        readonly name: "listingId";
+    }, {
+        readonly type: "uint256";
+        readonly name: "tokens";
+    }];
+    readonly outputs: readonly [{
+        readonly type: "uint256";
+    }];
+}, {
+    readonly name: "setSettleFee";
+    readonly type: "function";
+    readonly stateMutability: "nonpayable";
+    readonly inputs: readonly [{
+        readonly type: "uint256";
+        readonly name: "fee";
+    }];
+    readonly outputs: readonly [];
+}, {
+    readonly name: "SettleFeeUpdated";
+    readonly type: "event";
+    readonly inputs: readonly [{
+        readonly type: "uint256";
+        readonly name: "settleFee";
+    }];
 }];
 //# sourceMappingURL=abi.d.ts.map

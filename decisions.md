@@ -289,3 +289,33 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
      most accurate, but moves pricing truth off-chain; rejected as default because buyers could not verify it.
 - **Also noted:** gemini-2.5-flash is deprecated and auto-routes to gemini-3.5-flash-lite from 2026-12-01 (billed at
   that model rate). Listings for it keep working but sellers should relist on a current model before then.
+
+## D-031 — Settle fee: buyers reimburse the operator's settlement gas (contract v2, user decision 16:55)
+- **Measured problem:** gas cost more than the payment on every call. Foundry gas report: openRequest ~197k gas,
+  settle ~139k–180k. Live `eth_gasPrice` 102 gwei (2026-11-04 16:52) → buyer pays ~0.020 MON to open and the operator
+  ~0.014–0.018 MON to settle (more, since Monad charges on the gas *limit* and we send estimate × 1.2). A typical call
+  costs 0.000278 MON (request #19: 278 tokens × 0.001 MON/1k), so the operator earned 0.000007 MON in fee per settle that
+  cost it ~0.017 MON. With 9.79 MON it could settle ~700 calls, then go broke. v1 could not reimburse it
+  (setFeeBps caps at 10%).
+- **Fix (contract v2):** owner-set flat `settleFee` (cap 1 MON, initial **0.025 MON** = settle gas with margin).
+  - `quote()` now returns token cost + settleFee, so every client that sizes the deposit with `quote()` pays it with no
+    client change.
+  - The fee is snapshotted per request (`requestSettleFee`), so the owner changing it can't affect requests already open.
+  - On settle the fee goes to `balances[operator]`; refund = deposit − token cost − settleFee.
+  - **Cancel and reclaim still refund 100%**, so the operator eats the gas on provider failures (keeps the buyer
+    promise).
+  - New view: `tokenCost()`.
+- **Tests:** 21/21 pass, including 4 new ones:
+  - owner-only and cap;
+  - settle pays the operator and the snapshot holds;
+  - cancel/reclaim refund the fee;
+  - fuzz: seller + protocol + operator + buyer == deposit.
+  Run offline: the `eth_rpc_url` in foundry.toml forks the live chain and the public RPC rate-limited the fuzz runs (429).
+- **Deployed** `0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630`, Sourcify `match`, job
+  https://sourcify-api-monad.blockvision.org/verify-ui/jobs/d79603ec-1f5a-4d93-86ac-96fc000c9beb. Vercel env, `web/.env.local`,
+  `sdk/.env`, sdk config, README, agents page and demo docs point to it. The old contract `0xC5A6…f5f1` keeps its history.
+- **Receipt:** now shows "Settlement gas (to operator)" as its own amber segment, instead of folding it into the refund.
+- **Still open, honestly:** the buyer's own openRequest gas (~0.02 MON) is unchanged. Per-call settlement only pays off
+  when the call is worth more than ~0.05 MON. The real fix for small calls is a prepaid tab (one escrow, many calls,
+  batched settle). That is roadmap, not built.
+- **Consequence:** listings live on the old contract, so sellers must relist (with the D-029 key check).

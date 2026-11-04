@@ -41,12 +41,19 @@ export function SettlementReceipt({
   let payoutPct = 0;
   let feePct = 0;
   let refundPct = 0;
+  let gasPct = 0;
+
+  // D-031: the rest of the deposit is the flat settle fee that pays the operator's settlement gas.
+  const settleFeeWei =
+    depositWei > sellerPayoutWei + feeWei + refundWei
+      ? depositWei - sellerPayoutWei - feeWei - refundWei
+      : 0n;
 
   if (total > 0n) {
     payoutPct = Number((sellerPayoutWei * 10000n) / total) / 100;
     feePct = Number((feeWei * 10000n) / total) / 100;
-    // Calculate refundPct so sum is exactly 100%
-    refundPct = Math.max(0, Number((10000n - (sellerPayoutWei * 10000n) / total - (feeWei * 10000n) / total)) / 100);
+    gasPct = Number((settleFeeWei * 10000n) / total) / 100;
+    refundPct = Math.max(0, 100 - payoutPct - feePct - gasPct);
   }
 
   const tokenUsagePct =
@@ -120,6 +127,15 @@ export function SettlementReceipt({
               {feePct >= 12 ? `${feePct.toFixed(0)}%` : ''}
             </div>
           )}
+          {gasPct > 0 && (
+            <div
+              style={{ width: `${gasPct}%` }}
+              className="bg-amber-500 transition-all duration-500 hover:brightness-110 flex items-center justify-center text-[10px] text-[#0b0a10] font-mono font-bold truncate px-1"
+              title={`Settlement gas fee: ${gasPct.toFixed(1)}%`}
+            >
+              {gasPct >= 12 ? `${gasPct.toFixed(0)}%` : ''}
+            </div>
+          )}
           {refundPct > 0 && (
             <div
               style={{ width: `${refundPct}%` }}
@@ -132,7 +148,7 @@ export function SettlementReceipt({
         </div>
 
         {/* Legend */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs font-mono">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs font-mono">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-purple-600 flex-shrink-0" />
             <span className="text-[#a39fb5]">Seller Payout:</span>
@@ -143,6 +159,13 @@ export function SettlementReceipt({
             <span className="text-[#a39fb5]">Protocol Fee (2.5%):</span>
             <span className="text-[#f4f2fa] font-bold">{formatMON(feeWei)} MON</span>
           </div>
+          {settleFeeWei > 0n && (
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-amber-500 flex-shrink-0" />
+              <span className="text-[#a39fb5]">Settlement gas (to operator):</span>
+              <span className="text-[#f4f2fa] font-bold">{formatMON(settleFeeWei)} MON</span>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0" />
             <span className="text-emerald-400 font-medium">Buyer Refund:</span>

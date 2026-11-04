@@ -237,7 +237,7 @@ console.log(completion.quotagrid?.settleTxUrl);`}
       "env": {
         "QUOTAGRID_API_URL": "https://your-quotagrid-domain.com",
         "QUOTAGRID_PRIVATE_KEY": "0xYourAgentMonadPrivateKeyHere",
-        "QUOTAGRID_CONTRACT": "0xC5A6C25c44EA183c9e7A42B3e773Ad462F4df5f1",
+        "QUOTAGRID_CONTRACT": "0xE15215c6D5A8Ea7a7AC06BCF62C3b8169301E630",
         "MONAD_RPC_URL": "https://testnet-rpc.monad.xyz"
       }
     }

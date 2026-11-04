@@ -20,8 +20,10 @@ console.log('deposit  :', formatEther(r.depositWei), 'MON');
 console.log('payout   :', formatEther(r.sellerPayoutWei), 'MON (seller)');
 console.log('fee      :', formatEther(r.feeWei), 'MON (protocol)');
 console.log('refund   :', formatEther(r.refundWei), 'MON (back to buyer)');
-const sum = r.sellerPayoutWei + r.feeWei + r.refundWei;
-console.log('check    : payout+fee+refund == deposit ->', sum === r.depositWei ? 'PASS' : `FAIL (${sum} vs ${r.depositWei})`);
+const gas = r.depositWei - r.sellerPayoutWei - r.feeWei - r.refundWei; // D-031 settle fee, credited to the operator
+console.log('gas fee  :', formatEther(gas), 'MON (operator settle gas, D-031)');
+const sum = r.sellerPayoutWei + r.feeWei + r.refundWei + gas;
+console.log('check    : payout+fee+settleFee+refund == deposit ->', sum === r.depositWei ? 'PASS' : `FAIL (${sum} vs ${r.depositWei})`);
 console.log('open tx  :', ex + r.openTx);
 console.log('settle tx:', ex + r.settleTx);
 console.log('latency  :', r.latencyMs ?? (Date.now() - t0), 'ms end-to-end');

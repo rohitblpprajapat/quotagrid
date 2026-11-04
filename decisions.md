@@ -186,3 +186,24 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
 - **Result:** local `next build` OK (7 pages + 3 API routes, tsc 0 errors). Deployed to **https://quotagrid.vercel.app**
   (`vercel deploy --prod`). Smoke test: `/`, `/market`, `/sell`, `/activity`, `/agents` → 200; `/api/operator-key` → 200 and
   serves operator `0xE959…C8aA` (proves server env is loaded); `/api/quote` for a non-existent listing → clear error.
+
+## D-025 — Dedicated demo-agent wallet
+- **Decision:** Generated agent wallet `0xC44FfE454D021Db75E8211C5a685551Bf7005FDa`; key + SDK config in gitignored
+  `sdk/.env` (QUOTAGRID_PRIVATE_KEY, QUOTAGRID_API_URL=https://quotagrid.vercel.app, contract, RPC). Run the SDK with
+  `node --env-file=.env dist/cli.js …` (Node's built-in env loader; the SDK reads `process.env` only).
+- **Why:** Agents pay per call from their own wallet (D-010), separate from deployer/operator (D-017), so the demo shows a
+  real third party buying compute. Needs > 10 MON + call costs (D-015).
+
+## D-026 — Fix wrong-network writes; relax the SDK's 10 MON floor using Monad's emptying exception
+- **Bug found in live test (15:20):** user created a listing but `listingCount` stayed 0 on our contract. The live bundle
+  has the right address/chain, so the tx went elsewhere: every `writeContractAsync` call omitted `chainId`, and
+  ConnectButton used `useChainId()` (the app config's chain) instead of the wallet's real chain, so the
+  "Switch to Monad" prompt could stay hidden while the wallet sat on another network.
+- **Fix:** new `useEnsureMonad()` hook (wallet chain from `useAccount().chainId`; switches via `switchChainAsync`) called
+  before every write, and `chainId: monad.id` passed to all 4 write sites (createListing, updateListing, withdraw,
+  openRequest) so wagmi refuses to send on any other chain. ConnectButton now uses the wallet's chain id.
+- **Reserve rule, re-read live** (https://docs.monad.xyz/developer-essentials/reserve-balance.md): an undelegated EOA may
+  dip below the 10 MON reserve with an "emptying transaction" — one that is its only tx within the past k blocks
+  ("allow most small accounts to still interact … normally", k blocks ≈ 1.2 s). The SDK now spaces its txs ≥ 1.5 s apart
+  and its balance floor defaults to deposit + gas margin; `QUOTAGRID_MIN_RESERVE_MON=10` restores the strict D-015 floor.
+- **Why:** faucet wallets hold ~5 MON; the strict floor blocked the demo agent although the chain would accept its txs.

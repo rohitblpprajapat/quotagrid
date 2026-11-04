@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { quotaGridAbi } from '@/lib/abi';
-import { CONTRACT_ADDRESS, publicClient } from '@/lib/chain';
+import { CONTRACT_ADDRESS, publicClient, monad } from '@/lib/chain';
 import { formatMON } from '@/lib/format';
 import { Card, Button, Mono } from '@/components/ui';
 import { TxLink } from '@/components/TxLink';
 
+import { useEnsureMonad } from '@/hooks/useEnsureMonad';
+
 export function Earnings() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const { ensureMonad } = useEnsureMonad();
 
   const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
   const [withdrawTx, setWithdrawTx] = useState<`0x${string}` | null>(null);
@@ -52,7 +55,9 @@ export function Earnings() {
     setIsWithdrawing(true);
 
     try {
+      await ensureMonad();
       const hash = await writeContractAsync({
+        chainId: monad.id,
         address: CONTRACT_ADDRESS,
         abi: quotaGridAbi,
         functionName: 'withdraw',

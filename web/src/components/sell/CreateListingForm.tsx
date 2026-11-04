@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import { useAccount, useWriteContract } from 'wagmi';
 import { decodeEventLog } from 'viem';
 import { quotaGridAbi } from '@/lib/abi';
-import { CONTRACT_ADDRESS, publicClient } from '@/lib/chain';
+import { CONTRACT_ADDRESS, publicClient, monad } from '@/lib/chain';
 import { Provider } from '@/lib/types';
 import { parseMON } from '@/lib/format';
 import { getOperatorKey } from '@/lib/api';
 import { encryptForOperator } from '@/lib/encrypt';
 import { Card, Button, Input, Select, Field, Mono } from '@/components/ui';
 import { TxLink } from '@/components/TxLink';
+
+import { useEnsureMonad } from '@/hooks/useEnsureMonad';
 
 const PROVIDER_OPTIONS: { value: Provider; label: string }[] = [
   { value: 'gemini', label: 'Google Gemini' },
@@ -31,6 +33,7 @@ interface CreateListingFormProps {
 export function CreateListingForm({ onListingCreated }: CreateListingFormProps) {
   const { isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const { ensureMonad } = useEnsureMonad();
 
   const [provider, setProvider] = useState<Provider>('gemini');
   const [model, setModel] = useState<string>('gemini-2.5-flash');
@@ -114,7 +117,9 @@ export function CreateListingForm({ onListingCreated }: CreateListingFormProps) 
 
       // 4. Submit createListing transaction via wagmi
       setStatusStep('Waiting for wallet signature...');
+      await ensureMonad();
       const txHash = await writeContractAsync({
+        chainId: monad.id,
         address: CONTRACT_ADDRESS,
         abi: quotaGridAbi,
         functionName: 'createListing',

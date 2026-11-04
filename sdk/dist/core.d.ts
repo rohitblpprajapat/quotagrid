@@ -74,6 +74,7 @@ export declare class QuotaGridClient {
      * Internal queue to serialize on-chain transactions so concurrent calls
      * never collide on nonce.
      */
+    private lastTxAt;
     enqueueTx<T>(fn: () => Promise<T>): Promise<T>;
     getContractAddress(): `0x${string}`;
     /**

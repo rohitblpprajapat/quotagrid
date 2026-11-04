@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useWriteContract } from 'wagmi';
 import { quotaGridAbi } from '@/lib/abi';
-import { CONTRACT_ADDRESS, publicClient } from '@/lib/chain';
+import { CONTRACT_ADDRESS, publicClient, monad } from '@/lib/chain';
 import { Listing } from '@/lib/types';
 import { formatMON, parseMON, pricePer1kLabel } from '@/lib/format';
 import { useListings } from '@/hooks/useListings';
 import { Card, Button, Badge, Input, Field, Mono, Stat } from '@/components/ui';
 import { TxLink } from '@/components/TxLink';
+
+import { useEnsureMonad } from '@/hooks/useEnsureMonad';
 
 interface ListingItemProps {
   listing: Listing;
@@ -17,6 +19,7 @@ interface ListingItemProps {
 
 function ListingItem({ listing, onUpdated }: ListingItemProps) {
   const { writeContractAsync } = useWriteContract();
+  const { ensureMonad } = useEnsureMonad();
 
   // Inline edit state
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -67,7 +70,9 @@ function ListingItem({ listing, onUpdated }: ListingItemProps) {
 
     setIsUpdating(true);
     try {
+      await ensureMonad();
       const hash = await writeContractAsync({
+        chainId: monad.id,
         address: CONTRACT_ADDRESS,
         abi: quotaGridAbi,
         functionName: 'updateListing',

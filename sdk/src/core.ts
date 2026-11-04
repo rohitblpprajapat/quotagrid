@@ -14,7 +14,6 @@ import { privateKeyToAccount } from 'viem/accounts';
 import {
   loadConfig,
   type QuotaGridConfig,
-  MONAD_RESERVE_BALANCE_WEI,
   DEFAULT_GAS_MARGIN_WEI,
 } from './config.js';
 import { quotaGridAbi } from './abi.js';
@@ -102,6 +101,8 @@ export interface WalletInfo {
   reserveSafe: boolean;
 }
 
+const MIN_TX_SPACING_MS = 1500;
+
 export class QuotaGridClient {
   public readonly config: QuotaGridConfig;
   public readonly publicClient: PublicClient;
@@ -132,8 +133,22 @@ export class QuotaGridClient {
    * Internal queue to serialize on-chain transactions so concurrent calls
    * never collide on nonce.
    */
+  private lastTxAt = 0;
+
   public enqueueTx<T>(fn: () => Promise<T>): Promise<T> {
-    const next = this.txQueue.then(fn, fn);
+    // Space transactions >= 1.5 s apart (> k = 3 blocks of 300-400 ms) so each value-spending tx from an
+    // undelegated EOA qualifies for Monad's "emptying transaction" exception to the reserve-balance rule.
+    // Source: https://docs.monad.xyz/developer-essentials/reserve-balance.md (D-026)
+    const spaced = async () => {
+      const wait = this.lastTxAt + MIN_TX_SPACING_MS - Date.now();
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      try {
+        return await fn();
+      } finally {
+        this.lastTxAt = Date.now();
+      }
+    };
+    const next = this.txQueue.then(spaced, spaced);
     this.txQueue = next.then(() => {}, () => {});
     return next;
   }
@@ -386,10 +401,15 @@ export class QuotaGridClient {
       address: this.account.address,
     });
 
-    const minRequiredBalance = depositWei + MONAD_RESERVE_BALANCE_WEI + DEFAULT_GAS_MARGIN_WEI;
+    // Floor defaults to 0: txs are spaced > k blocks apart (enqueueTx) so the emptying exception applies.
+    // Set QUOTAGRID_MIN_RESERVE_MON=10 to keep the full Monad reserve untouched (D-015, D-026).
+    const reserveFloorWei = process.env.QUOTAGRID_MIN_RESERVE_MON
+      ? parseEther(process.env.QUOTAGRID_MIN_RESERVE_MON)
+      : 0n;
+    const minRequiredBalance = depositWei + reserveFloorWei + DEFAULT_GAS_MARGIN_WEI;
     if (walletBalance < minRequiredBalance) {
       throw new QuotaGridError(
-        `Insufficient wallet balance: ${formatEther(walletBalance)} MON. Required: at least ${formatEther(depositWei)} MON deposit + 10 MON reserve + 0.05 MON gas margin (Total: ${formatEther(minRequiredBalance)} MON). See Monad reserve balance policy (D-015).`
+        `Insufficient wallet balance: ${formatEther(walletBalance)} MON. Required: ${formatEther(depositWei)} MON deposit + ${formatEther(reserveFloorWei)} MON reserve floor + ${formatEther(DEFAULT_GAS_MARGIN_WEI)} MON gas margin (Total: ${formatEther(minRequiredBalance)} MON).`
       );
     }
 

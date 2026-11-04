@@ -7,7 +7,6 @@ import {
   useDisconnect,
   useBalance,
   useSwitchChain,
-  useChainId,
 } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { monad } from '@/lib/chain';
@@ -23,7 +22,8 @@ export function ConnectButton({ className = '' }: ConnectButtonProps) {
   const { connect, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
-  const chainId = useChainId();
+  const { chainId: walletChainId } = useAccount();
+  const chainId = walletChainId;
 
   const { data: balanceData } = useBalance({
     address,

@@ -20,6 +20,8 @@ import { ReserveWarning } from '@/components/ReserveWarning';
 import { ConnectButton } from '@/components/ConnectButton';
 import { SettlementReceipt } from '@/components/SettlementReceipt';
 
+import { useEnsureMonad } from '@/hooks/useEnsureMonad';
+
 function formatTokens(t: bigint | number): string {
   return t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -47,6 +49,7 @@ export default function BuyListingPage() {
   const { address, isConnected, chain } = useAccount();
   const { switchChain } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
+  const { ensureMonad } = useEnsureMonad();
 
   // Form State
   const [systemPrompt, setSystemPrompt] = useState('');
@@ -171,7 +174,9 @@ export default function BuyListingPage() {
       // Step 1: Escrow T_max on-chain
       const promptHash = keccak256(toBytes(quote.payload));
 
+      await ensureMonad();
       const hash = await writeContractAsync({
+        chainId: monad.id,
         address: CONTRACT_ADDRESS,
         abi: quotaGridAbi,
         functionName: 'openRequest',

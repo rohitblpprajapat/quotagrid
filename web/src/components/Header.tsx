@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@/components/ConnectButton';
+import { LogoMark } from '@/components/brand';
 
 const NAV_LINKS = [
   { href: '/market', label: 'Market' },
@@ -31,14 +32,12 @@ export function Header() {
           <div className="flex items-center gap-8">
             <Link
               href="/"
-              className="flex items-center gap-2.5 text-xl font-bold font-mono tracking-tight text-[#f4f2fa] hover:opacity-90 transition-opacity"
+              className="group flex items-center gap-2.5 text-lg font-semibold tracking-tight text-[#f4f2fa]"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] flex items-center justify-center shadow-md shadow-[#8b5cf6]/20">
-                <span className="text-white font-mono font-black text-base">Q</span>
-              </div>
+              <LogoMark size={24} className="transition-transform duration-300 group-hover:rotate-90" />
               <span>QuotaGrid</span>
-              <span className="hidden sm:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa]">
-                Monad
+              <span className="hidden sm:inline-block font-mono text-[11px] font-normal text-[#a39fb5]">
+                monad testnet
               </span>
             </Link>
 
@@ -52,8 +51,8 @@ export function Header() {
                     href={link.href}
                     className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       active
-                        ? 'bg-[#8b5cf6]/15 border border-[#8b5cf6]/40 text-[#f4f2fa]'
-                        : 'text-[#a39fb5] hover:text-[#f4f2fa] hover:bg-[#15131d] border border-transparent'
+                        ? 'text-[#f4f2fa] underline decoration-[#8b5cf6] decoration-2 underline-offset-[10px]'
+                        : 'text-[#a39fb5] hover:text-[#f4f2fa]'
                     }`}
                   >
                     {link.label}

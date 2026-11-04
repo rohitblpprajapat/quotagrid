@@ -1,387 +1,204 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { publicClient, CONTRACT_ADDRESS } from '@/lib/chain';
+import { publicClient, CONTRACT_ADDRESS, explorerTx, explorerAddress } from '@/lib/chain';
 import { quotaGridAbi } from '@/lib/abi';
-import { formatMON } from '@/lib/format';
+import { shortAddr } from '@/lib/format';
+import { SettlementGrid, BudgetGauge, GlyphSealedKey, GlyphEscrow, GlyphSplit } from '@/components/brand';
 
-export default function LandingPage() {
-  const [stats, setStats] = useState<{
-    listingCount: bigint | null;
-    requestCount: bigint | null;
-    protocolFeesWei: bigint | null;
-    currentBlock: bigint | null;
-  }>({
-    listingCount: null,
-    requestCount: null,
-    protocolFeesWei: null,
-    currentBlock: null,
-  });
+// Request #1 on contract v2 (decisions.md D-032): escrow 146 tokens, used 60, refund in the settle tx, 4.2 s.
+const SETTLE_TX = '0x94ec7ed09b13db9c8562095c1b89e671055de7414c7e59f2b948586abd72dda2';
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Poll live stats from Monad every 3 seconds
+/** Adds .is-in when the element scrolls into view (CSS handles the motion). */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
   useEffect(() => {
-    let isMounted = true;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && (e.target.classList.add('is-in'), io.unobserve(e.target))),
+      { threshold: 0.15 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
 
-    async function fetchStats() {
+function LiveStrip() {
+  const [s, setS] = useState<{ listings?: bigint; requests?: bigint; block?: bigint }>({});
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    async function load() {
       try {
-        const [listingsRes, requestsRes, feesRes, blockRes] = await Promise.all([
-          (publicClient as any).readContract({
-            address: CONTRACT_ADDRESS,
-            abi: quotaGridAbi,
-            functionName: 'listingCount',
-          }),
-          (publicClient as any).readContract({
-            address: CONTRACT_ADDRESS,
-            abi: quotaGridAbi,
-            functionName: 'requestCount',
-          }),
-          (publicClient as any).readContract({
-            address: CONTRACT_ADDRESS,
-            abi: quotaGridAbi,
-            functionName: 'protocolFees',
-          }),
+        const [listings, requests, block] = await Promise.all([
+          (publicClient as any).readContract({ address: CONTRACT_ADDRESS, abi: quotaGridAbi, functionName: 'listingCount' }),
+          (publicClient as any).readContract({ address: CONTRACT_ADDRESS, abi: quotaGridAbi, functionName: 'requestCount' }),
           publicClient.getBlockNumber(),
         ]);
-
-        if (isMounted) {
-          setStats({
-            listingCount: BigInt(listingsRes),
-            requestCount: BigInt(requestsRes),
-            protocolFeesWei: BigInt(feesRes),
-            currentBlock: BigInt(blockRes),
-          });
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.error('Failed to query QuotaGrid contract stats on Monad:', err);
-        if (isMounted) setIsLoading(false);
+        if (!alive) return;
+        setS((prev) => {
+          if (prev.block !== BigInt(block)) setTick((t) => t + 1);
+          return { listings: BigInt(listings), requests: BigInt(requests), block: BigInt(block) };
+        });
+      } catch {
+        /* keep last values; the strip shows dashes until the first read succeeds */
       }
     }
-
-    fetchStats();
-    const interval = setInterval(fetchStats, 3000);
-
+    load();
+    const id = setInterval(load, 3000);
     return () => {
-      isMounted = false;
-      clearInterval(interval);
+      alive = false;
+      clearInterval(id);
     };
   }, []);
+  const v = (x?: bigint) => (x === undefined ? '–' : x.toString());
+  return (
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-xs text-[#a39fb5]">
+      <span>
+        live from{' '}
+        <a href={explorerAddress(CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="text-[#f4f2fa] underline decoration-[#2a2638] underline-offset-4 hover:decoration-[#8b5cf6]">
+          {shortAddr(CONTRACT_ADDRESS)}
+        </a>
+      </span>
+      <span><span className="text-[#f4f2fa]">{v(s.listings)}</span> listings</span>
+      <span><span className="text-[#f4f2fa]">{v(s.requests)}</span> requests</span>
+      <span>
+        block <span key={tick} className="qg-tick text-[#f4f2fa]">{v(s.block)}</span>
+      </span>
+    </div>
+  );
+}
+
+export default function LandingPage() {
+  const agentsRef = useReveal<HTMLElement>();
+  const stepsRef = useReveal<HTMLElement>();
+  const monadRef = useReveal<HTMLElement>();
 
   return (
-    <div className="min-h-screen bg-[#0b0a10] text-[#f4f2fa] flex flex-col justify-between selection:bg-[#8b5cf6]/30">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        {/* Glow ambient background elements */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#8b5cf6]/10 blur-[120px] pointer-events-none rounded-full" />
-
-        <div className="relative text-center space-y-6 max-w-4xl mx-auto">
-          {/* Live Network Pill */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#15131d] border border-[#2a2638] text-xs font-mono text-[#a39fb5] shadow-inner">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22c55e]"></span>
-            </span>
-            <span className="text-[#f4f2fa] font-medium">Monad Testnet</span>
-            <span className="text-[#433d59]">|</span>
-            <span>300 ms Block Time</span>
-            <span className="text-[#433d59]">|</span>
-            <span>2-Block Finality</span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#f4f2fa] leading-[1.1]">
-            Sell your unused AI quota.{' '}
-            <span className="bg-gradient-to-r from-[#a78bfa] via-[#8b5cf6] to-[#c084fc] bg-clip-text text-transparent">
-              Pay only for tokens you use.
-            </span>
+    <div className="text-[#f4f2fa]">
+      {/* Hero: the claim on the left, the actual settlement on the right */}
+      <section className="grid items-center gap-12 pt-6 pb-16 md:pt-14 md:pb-24 lg:grid-cols-[1.1fr_1fr]">
+        <div>
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+            Pay for the tokens you used.
+            <br />
+            <span className="text-[#a39fb5]">Get the rest back in the same transaction.</span>
           </h1>
-
-          {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-[#a39fb5] max-w-3xl mx-auto leading-relaxed">
-            Decentralized AI inference marketplace on Monad testnet. Buyer escrows worst-case{' '}
-            <span className="font-mono text-[#f4f2fa] font-semibold">T_max</span>, seller is paid only for{' '}
-            <span className="font-mono text-[#f4f2fa] font-semibold">T_used</span>, and unused funds are refunded in the same transaction.
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#a39fb5]">
+            QuotaGrid lets people sell spare AI API quota without handing over their key. A buyer, or their agent, escrows
+            the worst-case cost in MON on Monad. When the model answers, the seller is paid for what was used and the
+            remainder goes straight back.
           </p>
-
-          {/* Action CTAs */}
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
             <Link
               href="/market"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold text-base transition-all duration-150 shadow-lg shadow-[#8b5cf6]/20 hover:scale-[1.02] active:scale-[0.98] text-center"
+              className="rounded-lg bg-[#8b5cf6] px-6 py-3 font-medium text-white transition-colors hover:bg-[#7c3aed] active:translate-y-px"
             >
-              Buy compute
+              Make a live call
             </Link>
-
-            <Link
-              href="/sell"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#15131d] hover:bg-[#1e1a2b] text-[#f4f2fa] border border-[#2a2638] hover:border-[#8b5cf6]/50 font-semibold text-base transition-all duration-150 text-center"
-            >
-              Sell quota
+            <Link href="/sell" className="font-medium text-[#f4f2fa] underline decoration-[#2a2638] underline-offset-[6px] hover:decoration-[#8b5cf6]">
+              Sell your quota
             </Link>
-
-            <Link
-              href="/agents"
-              className="w-full sm:w-auto px-6 py-4 rounded-xl bg-transparent hover:bg-[#15131d] text-[#a78bfa] hover:text-[#c084fc] font-medium text-base transition-all duration-150 flex items-center justify-center space-x-2 text-center"
-            >
-              <span>For AI agents</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+            <Link href="/agents" className="font-medium text-[#f4f2fa] underline decoration-[#2a2638] underline-offset-[6px] hover:decoration-[#8b5cf6]">
+              Use it from an agent
             </Link>
+          </div>
+          <div className="mt-12">
+            <LiveStrip />
           </div>
         </div>
 
-        {/* Live On-Chain Stats Strip (3s refresh via publicClient) */}
-        <div className="mt-14 max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-2 bg-[#12101a] rounded-2xl border border-[#2a2638] shadow-2xl">
-            {/* Stat 1: Listings */}
-            <div className="p-6 rounded-xl bg-[#15131d] border border-[#2a2638]/50 flex flex-col justify-between">
-              <div className="text-xs font-mono font-medium text-[#a39fb5] uppercase tracking-wider flex items-center justify-between">
-                <span>Active Listings</span>
-                <span className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
-              </div>
-              <div className="mt-3">
-                <span className="text-3xl md:text-4xl font-mono font-bold text-[#f4f2fa]">
-                  {isLoading || stats.listingCount === null
-                    ? '...'
-                    : stats.listingCount.toString()}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-[#a39fb5]">
-                AI models ready for instant execution
-              </p>
-            </div>
-
-            {/* Stat 2: Requests */}
-            <div className="p-6 rounded-xl bg-[#15131d] border border-[#2a2638]/50 flex flex-col justify-between">
-              <div className="text-xs font-mono font-medium text-[#a39fb5] uppercase tracking-wider flex items-center justify-between">
-                <span>Requests Processed</span>
-                <span className="w-2 h-2 rounded-full bg-[#06b6d4]" />
-              </div>
-              <div className="mt-3">
-                <span className="text-3xl md:text-4xl font-mono font-bold text-[#f4f2fa]">
-                  {isLoading || stats.requestCount === null
-                    ? '...'
-                    : stats.requestCount.toString()}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-[#a39fb5]">
-                Total on-chain escrow interactions
-              </p>
-            </div>
-
-            {/* Stat 3: Protocol Fees */}
-            <div className="p-6 rounded-xl bg-[#15131d] border border-[#2a2638]/50 flex flex-col justify-between">
-              <div className="text-xs font-mono font-medium text-[#a39fb5] uppercase tracking-wider flex items-center justify-between">
-                <span>Protocol Fees</span>
-                <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
-              </div>
-              <div className="mt-3 flex items-baseline space-x-1.5">
-                <span className="text-3xl md:text-4xl font-mono font-bold text-[#22c55e]">
-                  {isLoading || stats.protocolFeesWei === null
-                    ? '...'
-                    : formatMON(stats.protocolFeesWei, 4)}
-                </span>
-                <span className="font-mono text-sm font-semibold text-[#22c55e]/90">MON</span>
-              </div>
-              <p className="mt-2 text-xs text-[#a39fb5]">
-                2.5% protocol fee collected
-              </p>
-            </div>
+        <div className="rounded-2xl border border-[#2a2638] bg-[#100e17] p-6 sm:p-8">
+          <div className="mb-5 flex items-baseline justify-between gap-4 font-mono text-xs text-[#a39fb5]">
+            <span>request #1 · one cell per token</span>
+            <a href={explorerTx(SETTLE_TX)} target="_blank" rel="noreferrer" className="hover:text-[#f4f2fa]">
+              settle tx ↗
+            </a>
           </div>
-
-          <div className="mt-3 flex items-center justify-between px-2 text-xs font-mono text-[#a39fb5]">
-            <span className="flex items-center space-x-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-              <span>Contract verified on Monad Testnet</span>
-            </span>
-            <Link
-              href="/activity"
-              className="text-[#a78bfa] hover:text-[#c084fc] hover:underline flex items-center space-x-1"
-            >
-              <span>View Live Activity Screen</span>
-              <span>→</span>
-            </Link>
-          </div>
+          <SettlementGrid />
+          <p className="mt-5 border-t border-[#2a2638] pt-4 text-sm text-[#a39fb5]">
+            4.2 s from escrow to settlement on Monad testnet. Seller paid 0.0000585 MON, 2.5% fee, 0.000086 MON refunded.
+          </p>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-16 md:py-24 bg-[#0e0c15] border-y border-[#2a2638] px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <h2 className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8b5cf6]">
-              Workflow & Architecture
-            </h2>
-            <p className="text-3xl sm:text-4xl font-extrabold text-[#f4f2fa] tracking-tight">
-              How QuotaGrid Works
-            </p>
-            <p className="text-base text-[#a39fb5] max-w-2xl mx-auto">
-              Per-call escrow ensures trustless API sharing: seller never reveals keys, buyer never overpays.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Step 1 */}
-            <div className="p-8 rounded-2xl bg-[#15131d] border border-[#2a2638] flex flex-col justify-between relative group hover:border-[#8b5cf6]/40 transition-colors">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 flex items-center justify-center font-mono font-bold text-lg text-[#a78bfa]">
-                  01
-                </div>
-                <h3 className="text-xl font-bold text-[#f4f2fa]">
-                  Seller Lists Quota
-                </h3>
-                <p className="text-sm text-[#a39fb5] leading-relaxed">
-                  The seller inputs model name, available tokens, and price per 1k tokens. The API key is encrypted in the seller&apos;s browser using{' '}
-                  <strong className="text-[#f4f2fa]">RSA-OAEP (2048-bit SHA-256)</strong> to the operator&apos;s public key. The sealed ciphertext is saved on-chain. Plaintext never leaks.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#2a2638]/60 text-xs font-mono text-[#a78bfa]">
-                Browser-encrypted • Zero plaintext storage
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-8 rounded-2xl bg-[#15131d] border border-[#2a2638] flex flex-col justify-between relative group hover:border-[#8b5cf6]/40 transition-colors">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center font-mono font-bold text-lg text-[#06b6d4]">
-                  02
-                </div>
-                <h3 className="text-xl font-bold text-[#f4f2fa]">
-                  Buyer Escrows Worst-Case T_max
-                </h3>
-                <p className="text-sm text-[#a39fb5] leading-relaxed">
-                  Buyer selects a listing and escrows native MON for the maximum conceivable token budget (<strong className="text-[#f4f2fa]">T_max</strong>). Quota is locked in the contract to prevent double-selling. The prompt is committed via <strong className="text-[#f4f2fa]">keccak256 hash</strong>.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#2a2638]/60 text-xs font-mono text-[#06b6d4]">
-                Per-call escrow • Locked quota
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-8 rounded-2xl bg-[#15131d] border border-[#2a2638] flex flex-col justify-between relative group hover:border-[#8b5cf6]/40 transition-colors">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#22c55e]/15 border border-[#22c55e]/30 flex items-center justify-center font-mono font-bold text-lg text-[#22c55e]">
-                  03
-                </div>
-                <h3 className="text-xl font-bold text-[#f4f2fa]">
-                  Atomic Settle & Auto-Refund
-                </h3>
-                <p className="text-sm text-[#a39fb5] leading-relaxed">
-                  Upon model completion, the operator submits actual usage (<strong className="text-[#f4f2fa]">T_used</strong>). The contract credits the seller for consumed tokens, deducts the 2.5% protocol fee, and <strong className="text-[#22c55e]">refunds all unspent MON to the buyer in the very same transaction</strong>.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#2a2638]/60 text-xs font-mono text-[#22c55e]">
-                Instant refund • 2.5% protocol fee
-              </div>
-            </div>
-          </div>
+      {/* Agents: the differentiator gets the space */}
+      <section ref={agentsRef} className="qg-reveal grid gap-12 border-t border-[#2a2638] py-16 md:py-24 lg:grid-cols-2">
+        <div>
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Agents that don&apos;t stop when their tokens run out.</h2>
+          <p className="mt-5 max-w-lg leading-relaxed text-[#a39fb5]">
+            An agent runs on its own key with a token budget. When the budget drops below its threshold, or the provider
+            answers 429, the QuotaGrid SDK buys the next call from its own Monad wallet: cheapest matching listing,
+            exact quote, escrow, answer, refund. No human, no card.
+          </p>
+          <p className="mt-4 max-w-lg leading-relaxed text-[#a39fb5]">
+            Use the TypeScript wrapper, the MCP server, or point an OpenAI- or Gemini-compatible client at the local proxy.
+          </p>
+          <Link href="/agents" className="mt-6 inline-block font-medium text-[#f4f2fa] underline decoration-[#2a2638] underline-offset-[6px] hover:decoration-[#8b5cf6]">
+            Agent setup
+          </Link>
+        </div>
+        <div className="rounded-2xl border border-[#2a2638] bg-[#100e17] p-6 sm:p-8">
+          <BudgetGauge />
+          <pre className="mt-6 overflow-x-auto rounded-lg bg-[#0b0a10] p-4 font-mono text-[12.5px] leading-6 text-[#a39fb5]">
+{`step 1  own key    budget 120 -> 99
+step 2  own key    budget 99 -> 82
+step 3  own key    budget 82 -> 48
+`}<span className="text-[#f59e0b]">SWITCH  budget_threshold (48 &lt; 50)</span>{`
+step 4  `}<span className="text-[#22d3ee]">QuotaGrid</span>{`  escrow -> answer -> refund`}
+          </pre>
+          <p className="mt-3 font-mono text-[11px] text-[#5d5870]">from the rehearsal run of sdk demo-agent, 4 Nov 2026</p>
         </div>
       </section>
 
-      {/* Why Monad Section */}
-      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        <div className="rounded-3xl border border-[#2a2638] bg-gradient-to-b from-[#15131d] to-[#0f0d17] p-8 sm:p-12 lg:p-16 space-y-10 shadow-2xl">
-          <div className="max-w-3xl space-y-4">
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold uppercase tracking-wider bg-[#8b5cf6]/20 text-[#a78bfa] border border-[#8b5cf6]/40">
-              Documented Infrastructure Benchmarks
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-[#f4f2fa] tracking-tight">
-              Why QuotaGrid is Built on Monad
-            </h2>
-            <p className="text-base sm:text-lg text-[#a39fb5] leading-relaxed">
-              On Ethereum or standard L2s, per-call escrow is economically impossible — gas fees would exceed the token cost of the AI query itself, and 12-second block intervals would destroy conversational response latency. Monad makes per-call settlement viable.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
-            {/* Monad Fact 1 */}
-            <div className="p-6 rounded-2xl bg-[#0b0a10] border border-[#2a2638] space-y-2">
-              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-[#8b5cf6]">
-                300 ms
-              </div>
-              <div className="text-base font-bold text-[#f4f2fa]">
-                Block Frequency
-              </div>
-              <p className="text-xs text-[#a39fb5] leading-relaxed">
-                Sub-second escrow confirmation allows AI agent workflows and user chat sessions to initiate without noticeable latency.
-              </p>
-            </div>
-
-            {/* Monad Fact 2 */}
-            <div className="p-6 rounded-2xl bg-[#0b0a10] border border-[#2a2638] space-y-2">
-              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-[#22c55e]">
-                600 ms
-              </div>
-              <div className="text-base font-bold text-[#f4f2fa]">
-                2-Block Finality
-              </div>
-              <p className="text-xs text-[#a39fb5] leading-relaxed">
-                Irreversible consensus finality in 2 blocks. No reorg risks for sellers, and immediate settlement certainty for buyers.
-              </p>
-            </div>
-
-            {/* Monad Fact 3 */}
-            <div className="p-6 rounded-2xl bg-[#0b0a10] border border-[#2a2638] space-y-2">
-              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-[#06b6d4]">
-                100 nMON
-              </div>
-              <div className="text-base font-bold text-[#f4f2fa]">
-                Sub-Cent Base Fee
-              </div>
-              <p className="text-xs text-[#a39fb5] leading-relaxed">
-                Minimum base fee of 100 MON-gwei means the smart contract escrow overhead adds negligible cost to every AI completion.
-              </p>
-            </div>
-
-            {/* Monad Fact 4 */}
-            <div className="p-6 rounded-2xl bg-[#0b0a10] border border-[#2a2638] space-y-2">
-              <div className="font-mono text-3xl sm:text-4xl font-extrabold text-[#eab308]">
-                10 MON
-              </div>
-              <div className="text-base font-bold text-[#f4f2fa]">
-                Reserve Balance Rule
-              </div>
-              <p className="text-xs text-[#a39fb5] leading-relaxed">
-                Asynchronous consensus rule safeguarding against invalid state dips. Enforced client-side in the SDK before transaction submission.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* How a call works: a list, because it is a sequence */}
+      <section ref={stepsRef} className="qg-reveal border-t border-[#2a2638] py-16 md:py-24">
+        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">What happens in one call</h2>
+        <ol className="mt-10 divide-y divide-[#2a2638] border-y border-[#2a2638]">
+          {[
+            {
+              g: <GlyphSealedKey />,
+              t: 'The seller’s key is sealed in their browser',
+              d: 'It is encrypted to the operator’s RSA key before it leaves the page, checked with one real call so a dead key can’t be listed, and stored on-chain only as ciphertext.',
+            },
+            {
+              g: <GlyphEscrow />,
+              t: 'The buyer escrows the worst case',
+              d: 'Input tokens are counted exactly and the output cap is added: that is T_max. The prompt is bound to the escrow by its keccak256 hash, so the deposit can’t be spent on anything else.',
+            },
+            {
+              g: <GlyphSplit />,
+              t: 'One settlement splits it three ways',
+              d: 'The seller is paid for T_used, the protocol takes 2.5%, and the rest is refunded in the same transaction. If the provider fails the buyer gets 100% back; if the operator vanishes the buyer reclaims after 10 minutes.',
+            },
+          ].map((s, i) => (
+            <li key={i} className="grid gap-4 py-7 sm:grid-cols-[3rem_16rem_1fr] sm:gap-8">
+              <div>{s.g}</div>
+              <h3 className="font-semibold">{s.t}</h3>
+              <p className="leading-relaxed text-[#a39fb5]">{s.d}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {/* Agents Feature Banner */}
-      <section className="pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        <div className="p-8 md:p-12 rounded-3xl bg-[#15131d] border border-[#2a2638] flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 max-w-2xl">
-            <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#8b5cf6]">
-              Autonomous Infrastructure
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#f4f2fa]">
-              Built for Token-Aware Autonomous Agents
-            </h3>
-            <p className="text-sm sm:text-base text-[#a39fb5] leading-relaxed">
-              When your agent hits a primary rate limit (HTTP 429) or token budget threshold, the QuotaGrid SDK automatically opens an on-chain escrow from the agent&apos;s own Monad wallet, executes the prompt, and receives refunds for unused tokens.
+      {/* Why Monad: two sourced facts and one measured number, no fact cards */}
+      <section ref={monadRef} className="qg-reveal border-t border-[#2a2638] py-16 md:py-20">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Why this needs Monad</h2>
+          <div className="space-y-4 leading-relaxed text-[#a39fb5]">
+            <p>
+              Every AI call here is its own escrow and its own settlement. That only feels like an API call if blocks are fast
+              and final: Monad produces a block every <span className="text-[#f4f2fa]">300 ms</span> and finalises in{' '}
+              <span className="text-[#f4f2fa]">two blocks</span>. Our measured round trip, escrow to refund, is{' '}
+              <span className="text-[#f4f2fa]">4.2 s</span>, most of it the model thinking.
             </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto shrink-0">
-            <Link
-              href="/agents"
-              className="px-6 py-3.5 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold text-center transition-all"
-            >
-              Explore Agent Docs & SDK
-            </Link>
-            <Link
-              href="/activity"
-              className="px-6 py-3.5 rounded-xl bg-[#201d2d] hover:bg-[#2c283f] text-[#f4f2fa] border border-[#342e47] font-semibold text-center transition-all"
-            >
-              Live Feed Screen
-            </Link>
+            <p>
+              Gas is the open problem: settling still costs more than a tiny call earns. Today the protocol treasury pays
+              settlement gas; a prepaid tab that settles many calls at once is next.
+            </p>
           </div>
         </div>
       </section>

@@ -1,24 +1,26 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
-const sansFont = Inter({
+const sansFont = IBM_Plex_Sans({
   variable: '--font-sans',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
 
-const monoFont = JetBrains_Mono({
+const monoFont = IBM_Plex_Mono({
   variable: '--font-mono',
   subsets: ['latin'],
+  weight: ['400', '500', '600'],
 });
 
 export const metadata: Metadata = {
   title: 'QuotaGrid — sell unused AI quota on Monad',
   description:
-    'Decentralized marketplace for trading unused AI API quota with on-chain escrow and settlement on Monad.',
+    'Sell unused AI API quota without revealing your key. Buyers escrow the worst case on Monad, pay for the tokens used, and get the rest back in the same transaction.',
 };
 
 export default function RootLayout({

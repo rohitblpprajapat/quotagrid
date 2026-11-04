@@ -50,3 +50,59 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #38324a;
 }
+
+/* ---------- QuotaGrid illustrations (components/brand.tsx) ---------- */
+/* Settlement replay of request #1: 9 s loop. Cells escrow, 60 fill as used, 86 turn green and leave. */
+.qg-cell { fill: transparent; stroke: #2a2638; stroke-width: 1.5; }
+.qg-cell-used { animation: qg-used 9s cubic-bezier(.3,.7,.2,1) infinite both; }
+.qg-cell-refund { animation: qg-refund 9s cubic-bezier(.3,.7,.2,1) infinite both; }
+@keyframes qg-used {
+  0%   { fill: transparent; stroke: #2a2638; opacity: .35; }
+  8%   { opacity: 1; stroke: #5b4a8a; }
+  22%  { fill: transparent; stroke: #5b4a8a; }
+  30%, 88% { fill: #8b5cf6; stroke: #8b5cf6; opacity: 1; }
+  97%, 100% { fill: transparent; stroke: #2a2638; opacity: .35; }
+}
+@keyframes qg-refund {
+  0%   { fill: transparent; stroke: #2a2638; opacity: .35; }
+  8%   { opacity: 1; stroke: #5b4a8a; }
+  38%  { fill: transparent; stroke: #5b4a8a; }
+  46%, 66% { fill: #34d399; stroke: #34d399; opacity: 1; }
+  78%, 88% { fill: #34d399; stroke: #34d399; opacity: .18; }
+  97%, 100% { fill: transparent; stroke: #2a2638; opacity: .35; }
+}
+.qg-phase-used { animation: qg-phase-used 9s ease infinite both; }
+.qg-phase-refund { animation: qg-phase-refund 9s ease infinite both; }
+@keyframes qg-phase-used { 0%, 22% { opacity: .3; } 30%, 90% { opacity: 1; } 100% { opacity: .3; } }
+@keyframes qg-phase-refund { 0%, 40% { opacity: .3; } 48%, 90% { opacity: 1; } 100% { opacity: .3; } }
+
+/* Agent budget gauge: 120 -> 99 -> 82 -> 48 (below 50) then the route flips. 10 s loop. */
+.qg-gauge-fill { transform-box: fill-box; transform-origin: left center; animation: qg-gauge 10s cubic-bezier(.5,0,.2,1) infinite both; }
+@keyframes qg-gauge {
+  0%, 12%  { transform: scaleX(1);    fill: #34d399; }
+  16%, 30% { transform: scaleX(.825); fill: #34d399; }
+  34%, 48% { transform: scaleX(.683); fill: #34d399; }
+  52%, 90% { transform: scaleX(.4);   fill: #f59e0b; }
+  97%, 100%{ transform: scaleX(1);    fill: #34d399; }
+}
+.qg-route-a { animation: qg-route-a 10s ease infinite both; }
+.qg-route-b { animation: qg-route-b 10s ease infinite both; }
+@keyframes qg-route-a { 0%, 52% { opacity: 1; transform: none; } 56%, 94% { opacity: 0; transform: translateY(-8px); } 100% { opacity: 1; transform: none; } }
+@keyframes qg-route-b { 0%, 52% { opacity: 0; transform: translateY(8px); } 56%, 94% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(8px); } }
+
+/* Live block number: a brief flash each time a new block arrives. */
+.qg-tick { animation: qg-tick .6s ease-out; }
+@keyframes qg-tick { from { color: #34d399; } to { color: inherit; } }
+
+/* Section reveal on scroll (added by useReveal in page.tsx). */
+.qg-reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+.qg-reveal.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qg-cell-used, .qg-cell-refund, .qg-phase-used, .qg-phase-refund, .qg-gauge-fill, .qg-route-a, .qg-route-b, .qg-tick { animation: none; }
+  .qg-cell-used { fill: #8b5cf6; stroke: #8b5cf6; }
+  .qg-cell-refund { fill: #34d399; stroke: #34d399; }
+  .qg-gauge-fill { transform: scaleX(.4); fill: #f59e0b; }
+  .qg-route-a { opacity: 0; } .qg-route-b { opacity: 1; }
+  .qg-reveal { opacity: 1; transform: none; transition: none; }
+}

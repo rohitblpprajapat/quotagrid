@@ -4,15 +4,14 @@ Rubric: post on X / LinkedIn tagging **@monad @monad_dev @geeky_kartikey**, a 30
 5K+ combined views counted before **17:45 IST**. Post early; reply to your own post with the video if needed.
 
 ## X — main post (with the 30 s demo video attached)
-> Your AI credits expire every month. Your agents die when they run out of tokens.
+> AI credits expire monthly. Agents die when tokens run out.
 >
-> Built QuotaGrid at #MonadBlitz Mumbai: sell unused AI quota without revealing your key. Buyers escrow the worst case,
-> pay only for tokens used, and get the rest refunded in the same tx.
+> Built QuotaGrid at #MonadBlitz: sell unused AI quota without exposing your key. Escrow the worst case, pay only for tokens used, rest refunded in the same tx.
 >
 > Live on Monad testnet 👇
 > @monad @monad_dev @geeky_kartikey
 
-(≈ 270 characters before the link — check the counter; drop "Mumbai" if it's over.)
+(277 characters; X counts each @handle and emoji, so check the composer counter.)
 
 ## X — thread replies
 1. > How it works:

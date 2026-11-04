@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg: #0b0a10;
+  --color-surface: #15131d;
+  --color-surface-hover: #1c1927;
+  --color-surface-card: #15131d;
+  --color-border: #2a2638;
+  --color-border-hover: #38324a;
+  --color-foreground: #f4f2fa;
+  --color-muted: #a39fb5;
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #7c3aed;
+  --color-accent-muted: rgba(139, 92, 246, 0.15);
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0b0a10;
+  --foreground: #f4f2fa;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #0b0a10;
+  color: #f4f2fa;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Custom scrollbars for clean dark interface */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0a10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2638;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #38324a;
 }

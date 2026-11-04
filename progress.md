@@ -17,6 +17,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 
 | 13:55 | First commit pushed to github.com/rohitblpprajapat/quotagrid (e4054fc); secret scan clean. sdk resumed as sdk-fix1 with --boost. |
 | 14:20 | sdk-fix1 verified (18/18, live read OK), pushed 56482f5. web2 failed on slow WSL npm install → UI split into 4 parallel Windows agy runs (D-021). |
+| 14:50 | UI runs finished (timeouts, pages written). tsc: 83 errors from 6 missing shared components + ES2017 target → target fixed; `ui-core-fix1` writing components (D-023). |
 
 ## Rubric checklist
 ### Basic (50)
@@ -48,7 +49,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | Agent SDK / proxy / MCP / demo agent | agy `sdk` → `sdk-fix1` (boost) | done — 18/18 tests (rerun by supervisor), live `models` read OK |
 | API routes (operator key, quote, execute) | agy `api` → `api-fix1` | done — D-013 multi-turn payload, crypto self-test PASS |
 | Deploy testnet + verify | supervisor | done — deployed + Sourcify verified (D-019) |
-| Host on Vercel | supervisor | Vercel CLI 65.11.0 installed; waiting for user `vercel login`; build will run on Vercel (D-022) |
+| Host on Vercel | supervisor | logged in (rohitblpprajapat), project `quotagrid` linked (root web/), 6 env vars set for production (secrets hidden); deploy after UI type-checks |
 | README | — | pending |
 
 ## Needs from the user

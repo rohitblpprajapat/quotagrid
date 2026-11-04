@@ -169,3 +169,11 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   react >= 18, @tanstack/react-query >= 5), `viem 2.57.16`, `@tanstack/react-query 5.105.3` — and let Vercel's build
   (fast network) install and type-check. Vercel CLI 65.11.0 is installed locally for deploys.
 - **Risk:** first type errors surface on the Vercel build instead of locally; mitigated by fixing quickly via redeploy.
+
+## D-023 — Use `/boost` only for big jobs with long timeouts
+- **Finding:** all four UI runs with `/boost` hit the 30-min timeout: the orchestrator delegated to a DeepCoder subagent and
+  was still waiting when killed. The pages were written (4.6k lines), but `ui-core` never wrote its 6 shared components,
+  causing 83 type errors (plus tsconfig target ES2017 rejecting BigInt literals — fixed to ES2020).
+- **Decision:** small, well-scoped fixes run without boost and with short timeouts (`ui-core-fix1`); boost stays for large
+  multi-file work and gets >= 45-min timeouts.
+- **Why:** Boost adds a subagent hop and verification rounds; with ~2.7 h to code freeze, latency matters more.

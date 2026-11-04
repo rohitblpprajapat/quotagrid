@@ -48,7 +48,8 @@ function LiveStrip() {
       }
     }
     load();
-    const id = setInterval(load, 3000);
+    // The public Monad RPC rate-limits (429); poll gently and not at all in a background tab.
+    const id = setInterval(() => document.visibilityState === 'visible' && load(), 10000);
     return () => {
       alive = false;
       clearInterval(id);

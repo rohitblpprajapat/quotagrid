@@ -18,7 +18,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | 13:55 | First commit pushed to github.com/rohitblpprajapat/quotagrid (e4054fc); secret scan clean. sdk resumed as sdk-fix1 with --boost. |
 | 14:20 | sdk-fix1 verified (18/18, live read OK), pushed 56482f5. web2 failed on slow WSL npm install → UI split into 4 parallel Windows agy runs (D-021). |
 | 14:50 | UI runs finished (timeouts, pages written). tsc: 83 errors from 6 missing shared components + ES2017 target → target fixed; `ui-core-fix1` writing components (D-023). |
-| 15:10 | UI type-checks + builds. Deployed https://quotagrid.vercel.app; pages + operator-key API verified live (D-024). README being written (agy `readme`). |
+| 15:06 | UI type-checks + builds. Deployed https://quotagrid.vercel.app; pages + operator-key API verified live (D-024). README being written (agy `readme`). |
 
 ## Rubric checklist
 ### Basic (50)

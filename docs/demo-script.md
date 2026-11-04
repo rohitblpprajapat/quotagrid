@@ -6,10 +6,11 @@ Rule to hit: **a live on-chain transaction during the 3 minutes.** We do two: a 
 - **Laptop screen 1 (browser):** tab A `https://quotagrid.vercel.app/buy/1`, tab B `https://quotagrid.vercel.app/activity`,
   tab C the settle tx on `testnet.monadvision.com` (fallback). Wallet connected **on Monad Testnet**, > 1 MON.
 - **Laptop screen 2 (terminal):** in `sdk/`, command typed but not run:
-  `node --env-file=.env dist/cli.js demo-agent --models gemini-2.5-flash --max-price 0.01 --budget 120 --threshold 50`
+  `node --env-file=.env dist/cli.js demo-agent --models gemini-2.5-flash --max-price 0.01`
   (needs `PRIMARY_GEMINI_API_KEY` in `sdk/.env` so the agent starts on its own key and visibly switches; without it the
   agent runs QuotaGrid-only — still a live tx, but no "switch" moment).
-- Check right before: `node --env-file=.env dist/cli.js models` shows listing #1 with free quota; operator wallet has gas.
+- Check right before (read-only, spends nothing): `node --env-file=.env scripts/preflight.mjs` in `sdk/` → must print
+  `ALL CHECKS PASSED`. It checks RPC, contract, listing quota, all wallet balances, and does a live quote on every listing.
 - Zoom browser to 125–150 % so numbers read from the back.
 
 ## Script
@@ -30,6 +31,9 @@ Rule to hit: **a live on-chain transaction during the 3 minutes.** We do two: a 
    > same transaction. Escrow, answer, settlement, refund — about five seconds."
 
 **1:15 – 2:10 · Live: a token-aware agent** (terminal + tab B side by side)
+Rehearsed output (16:10): steps 1–3 answer on the agent's own Gemini key (budget 120 → 99 → 82 → 48), step 4 prints
+`⚡ [SWITCH TRIGGERED] Reason: budget_threshold`, steps 4–6 buy on QuotaGrid: ~275 tokens escrowed, ~40 used, ~86 %
+refunded, 5–6.5 s each.
 1. Run the demo-agent command.
    > "This agent runs on its own Gemini key with a tiny budget. Watch what happens when it's low on tokens."
 2. When the route flips to `QUOTAGRID`:

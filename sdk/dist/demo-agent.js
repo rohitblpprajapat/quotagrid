@@ -12,13 +12,15 @@ const c = {
     magenta: '\x1b[35m',
 };
 const QUESTIONS = [
-    'What is Monad\'s block time in milliseconds?',
     'What is the capital of France?',
-    'Explain in 10 words or less what an escrow smart contract does.',
-    'What is the native currency ticker of Monad?',
-    'What Solidity version is commonly used for modern EVM contracts?',
-    'Why do decentralized quota markets protect developers from API outages?',
+    'What does EVM stand for?',
+    'Explain what an escrow smart contract does.',
+    'Name one benefit of paying per token instead of a flat monthly fee.',
+    'What is an API rate limit?',
+    'Why can a marketplace for unused AI quota help developers?',
 ];
+// Short answers keep token use well below the escrowed maximum, so the refund is visible.
+const STYLE = 'Answer in one short sentence. ';
 export async function runDemoAgent(options = {}) {
     const budget = options.budget ?? 120; // Deliberately small budget
     const threshold = options.threshold ?? 50;
@@ -46,7 +48,9 @@ export async function runDemoAgent(options = {}) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents,
-                    generationConfig: { maxOutputTokens: req.maxOutputTokens || 64 },
+                    // Gemini 2.5 models spend "thinking" tokens inside maxOutputTokens unless thinking is disabled
+                    // (https://ai.google.dev/gemini-api/docs/thinking); disable it so the answer isn't cut off.
+                    generationConfig: { maxOutputTokens: req.maxOutputTokens || 256, thinkingConfig: { thinkingBudget: 0 } },
                 }),
             });
             if (!res.ok) {
@@ -57,8 +61,8 @@ export async function runDemoAgent(options = {}) {
             }
             const data = await res.json();
             const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
-            const inputTokens = data.usageMetadata?.promptTokenCount || 10;
-            const outputTokens = data.usageMetadata?.candidatesTokenCount || 20;
+            const inputTokens = data.usageMetadata?.promptTokenCount ?? 0;
+            const outputTokens = (data.usageMetadata?.candidatesTokenCount ?? 0) + (data.usageMetadata?.thoughtsTokenCount ?? 0);
             return {
                 text,
                 usage: { inputTokens, outputTokens },
@@ -82,7 +86,7 @@ export async function runDemoAgent(options = {}) {
                 body: JSON.stringify({
                     model: req.models?.[0] || 'gpt-4o-mini',
                     messages,
-                    max_completion_tokens: req.maxOutputTokens || 64,
+                    max_completion_tokens: req.maxOutputTokens || 256,
                 }),
             });
             if (!res.ok) {
@@ -138,8 +142,8 @@ export async function runDemoAgent(options = {}) {
         console.log(`${c.bold}[Step ${i + 1}/${QUESTIONS.length}] Question: "${q}"${c.reset}`);
         try {
             const response = await agentCaller({
-                messages: [{ role: 'user', content: q }],
-                maxOutputTokens: 64,
+                messages: [{ role: 'user', content: STYLE + q }],
+                maxOutputTokens: 256,
                 models,
             });
             if (response.source === 'primary') {

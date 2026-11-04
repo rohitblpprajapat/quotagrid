@@ -21,13 +21,16 @@ export interface DemoAgentOptions {
 }
 
 const QUESTIONS = [
-  'What is Monad\'s block time in milliseconds?',
   'What is the capital of France?',
-  'Explain in 10 words or less what an escrow smart contract does.',
-  'What is the native currency ticker of Monad?',
-  'What Solidity version is commonly used for modern EVM contracts?',
-  'Why do decentralized quota markets protect developers from API outages?',
+  'What does EVM stand for?',
+  'Explain what an escrow smart contract does.',
+  'Name one benefit of paying per token instead of a flat monthly fee.',
+  'What is an API rate limit?',
+  'Why can a marketplace for unused AI quota help developers?',
 ];
+
+// Short answers keep token use well below the escrowed maximum, so the refund is visible.
+const STYLE = 'Answer in one short sentence. ';
 
 export async function runDemoAgent(options: DemoAgentOptions = {}): Promise<void> {
   const budget = options.budget ?? 120; // Deliberately small budget
@@ -61,7 +64,9 @@ export async function runDemoAgent(options: DemoAgentOptions = {}): Promise<void
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents,
-          generationConfig: { maxOutputTokens: req.maxOutputTokens || 64 },
+          // Gemini 2.5 models spend "thinking" tokens inside maxOutputTokens unless thinking is disabled
+          // (https://ai.google.dev/gemini-api/docs/thinking); disable it so the answer isn't cut off.
+          generationConfig: { maxOutputTokens: req.maxOutputTokens || 256, thinkingConfig: { thinkingBudget: 0 } },
         }),
       });
 
@@ -74,8 +79,9 @@ export async function runDemoAgent(options: DemoAgentOptions = {}): Promise<void
 
       const data: any = await res.json();
       const text = (data.candidates?.[0]?.content?.parts || []).map((p: any) => p.text || '').join('');
-      const inputTokens = data.usageMetadata?.promptTokenCount || 10;
-      const outputTokens = data.usageMetadata?.candidatesTokenCount || 20;
+      const inputTokens = data.usageMetadata?.promptTokenCount ?? 0;
+      const outputTokens =
+        (data.usageMetadata?.candidatesTokenCount ?? 0) + (data.usageMetadata?.thoughtsTokenCount ?? 0);
 
       return {
         text,
@@ -100,7 +106,7 @@ export async function runDemoAgent(options: DemoAgentOptions = {}): Promise<void
         body: JSON.stringify({
           model: req.models?.[0] || 'gpt-4o-mini',
           messages,
-          max_completion_tokens: req.maxOutputTokens || 64,
+          max_completion_tokens: req.maxOutputTokens || 256,
         }),
       });
 
@@ -168,8 +174,8 @@ export async function runDemoAgent(options: DemoAgentOptions = {}): Promise<void
 
     try {
       const response = await agentCaller({
-        messages: [{ role: 'user', content: q }],
-        maxOutputTokens: 64,
+        messages: [{ role: 'user', content: STYLE + q }],
+        maxOutputTokens: 256,
         models,
       });
 

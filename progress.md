@@ -22,6 +22,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 | 15:08 | README written + fact-fixed, pushed 783ee7f, redeployed. Next: live end-to-end test (needs a seller listing with a real API key). |
 | 15:19 | Live test: user's listing never reached our contract (listingCount 0) → wrong-network write bug fixed + SDK reserve floor relaxed (D-026). Redeployed, pushed b3717e2. Agent wallet 0xC44F… funded 5 MON. |
 | 15:53 | LIVE E2E PASS on testnet (requests #2, #3 settled; split exact). Demo agent ran; Gemini 503s → cancel+refund worked. SDK no-retry-on-cancel + server transient retry (D-027). |
+| 16:16 | Demo agent fixed + rehearsed once (switch at step 4, ~86% refunds). Preflight script added: all PASS except listing #2 (anthropic) key/model likely invalid. Demo path LOCKED (D-028). |
 
 ## Rubric checklist
 ### Basic (50)
@@ -31,7 +32,7 @@ Code freeze **17:30 IST** · submission **17:45 IST** · demos from 18:00 (3 min
 - [x] Publicly hosted app (10) — https://quotagrid.vercel.app
 ### Advance — Project working (50)
 - [x] All announced features work (20) — live: list → quote → escrow → execute → settle/refund; agent flow; cancel+refund on provider failure
-- [ ] Live on-chain tx during demo (10)
+- [ ] Live on-chain tx during demo (10) — rehearsed: human buy + agent switch (D-028); preflight script ready
 - [x] Contract verified on explorer (10) — Sourcify `match`
 - [x] Reproducible README (10) — quickstart for contracts / web / sdk
 ### Advance — Build in public (50) — needs the team

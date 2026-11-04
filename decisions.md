@@ -222,3 +222,18 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   1.2 s / 2.4 s backoff before cancel + refund. Non-transient errors still fail fast.
 - **Why:** the 3-minute stage demo needs a live call to land; provider overload is outside our control, but refund-on-failure
   plus a short retry keeps the demo honest and likely to succeed.
+
+## D-028 — Demo agent output fix, rehearsal, and code lock for the demo path
+- **Fix:** the agent's primary Gemini calls disable thinking (`thinkingConfig.thinkingBudget = 0`; Gemini 2.5 spends thinking
+  tokens inside `maxOutputTokens`, which truncated answers), output cap 256, "answer in one short sentence" style, usage
+  counts thoughts and no longer invents defaults (`?? 0` instead of `|| 10/20`). Questions replaced with ones the model
+  answers reliably (earlier it said Monad's ticker is "MONAD"; it is MON).
+- **Rehearsal (one run, 16:10):** steps 1–3 primary (budget 120→48), switch at step 4 (`budget_threshold`), steps 4–6 on
+  QuotaGrid: 277/270/274 escrowed, 38/35/45 used, ~86 % refunded, 5.0–6.5 s each. Settle txs `0xa40b6fc9…ee05`,
+  `0x2ed3f995…aef`, `0x3450663b…24d`.
+- **Pre-flight:** `sdk/scripts/preflight.mjs` (read-only) checks RPC, contract, quota, balances, primary key, and a live quote
+  on every active listing (exact token count = seller key works). It flagged listing #2 (`claude-haiku-4-5`, anthropic):
+  quote fell back to an estimate → its key/model is likely rejected by Anthropic. Not used by either demo flow; the seller
+  should deactivate or fix it on `/sell`.
+- **Lock:** after this commit, no code changes on the demo path (buy page, API routes, contract, SDK core, demo agent)
+  unless a blocking bug appears. Reason: user asked to plan for a single, reliable live demo.

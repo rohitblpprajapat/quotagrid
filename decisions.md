@@ -146,3 +146,9 @@ Each entry: what we decided, why, what we gave up. Newest at the bottom. Facts r
   spot-reviewed. ABI is frozen per briefs/interface.md, so UI/API/SDK can integrate against the live address.
 - **Reproducible:** `scripts/deploy-testnet.sh` and `scripts/verify-testnet.sh <address>` (read keys from gitignored `.env`).
 - **Operator RSA key:** generated with `web/scripts/gen-operator-keys.mjs` into gitignored `web/.env.local` only.
+
+## D-020 — Commit and push continuously to the fork
+- **Decision:** Commit + push to `rohitblpprajapat/quotagrid` (`main`) after each verified milestone. Before every commit,
+  scan staged files for the real keys from `.env` / `web/.env.local` (none may appear). No AI attribution lines in commits.
+- **Why:** User approval; code must be on GitHub before the 17:30 code freeze, and frequent pushes make a lost machine or a
+  bad agent edit recoverable.

@@ -20,6 +20,18 @@ export function buildPayload(options: {
   messages: PromptMessage[];
 }): string {
   const { system, messages } = options;
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new Error('Payload messages must be a non-empty array');
+  }
+
+  const lastMsg = messages[messages.length - 1];
+  if (!lastMsg || lastMsg.role !== 'user') {
+    throw new Error(
+      `Last message in payload must have role "user" (received "${lastMsg?.role}")`
+    );
+  }
+
   return JSON.stringify({
     v: 1,
     ...(system ? { system } : {}),
